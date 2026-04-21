@@ -35,10 +35,11 @@ export default function PythonConsole({ args }: { args: ConsoleArg[] }) {
             <div className="h-full flex flex-col overflow-y-auto pb-2 bg-slate-950 text-xs rounded-md">
                 {
                     args.map((arg, i) => (
-                        <p key={`arg${i}`} className={`w-full px-4 py-2 font-mono ${argColors[arg.status]} border-b-2 border-slate-800`}>
-                            <span className="font-semibold">{getPrefix(arg.status)}</span>
+                        <code key={`arg${i}`} className={`w-full whitespace-pre-line px-4 py-2 font-mono ${argColors[arg.status]} border-b-2 border-slate-800`}>
+                            <span className="font-semibold">{getPrefix(arg.status)}</span> 
+                            {typeof arg.message == "string" && arg.message.includes("\n") && (<br/>)}
                             {arg.message}
-                            </p>
+                            </code>
                     ))
                 }
                 {args.length == 0 &&

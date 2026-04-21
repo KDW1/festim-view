@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import io
 import sys
 from contextlib import redirect_stdout, redirect_stderr
-from types import SimpleNamespace
 
 load_dotenv()
 
@@ -104,8 +103,7 @@ def evaluate_expression():
             return jsonify({
                 "success": True,
                 "result": result,
-                "output": output,
-                "namespace": universal_namespace
+                "output": output
             })
         except SyntaxError as e:
             return jsonify({

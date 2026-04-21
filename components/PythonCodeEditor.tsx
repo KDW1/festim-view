@@ -162,6 +162,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
                     theme="nightowl"
                     defaultLanguage="python"
                     value={pythonCode}
+                    // TODO: Fix the onChange error where if you select and delete code it doesnt deleteW
                     onChange={(val: string | undefined) => {
                         if (!val) return
                         setPythonCode(val)

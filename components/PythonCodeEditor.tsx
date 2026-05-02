@@ -143,7 +143,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
     }, [themeName]);
 
     return (
-        <div className="w-1/2 container">
+        <div className="w-full flex-1 container">
             <p className="font-semibold">Python Code Editor. 
             <br />
             <span className="text-xs font-normal text-blue-400">Enter your Python code here prior to it being run...</span>
@@ -156,7 +156,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
                 ))
                 }
             </select>
-            <div style={{ backgroundColor: `${backgroundColor}` }} className="h-84 px-4 py-4 rounded-md">
+            <div style={{ backgroundColor: `${backgroundColor}` }} className="h-4/5 px-4 py-4 rounded-md">
                 <Editor
                     height={"100%"}
                     theme="nightowl"

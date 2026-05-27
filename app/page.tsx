@@ -14,7 +14,7 @@ export default function Home() {
   }
   return (
     <div className="h-screen bg-blue-300">
-      <main className="px-16 py-8 h-full mx-auto flex flex-row gap-4">
+      <main className="px-16 py-8 h-full overflow-y-clip mx-auto flex flex-row gap-4">
         <div className="flex flex-col w-1/2 space-y-4 h-full">
         <PythonCodeEditor args={args} updateArgs={updateArgs} />
         <PythonConsole args={args}/>

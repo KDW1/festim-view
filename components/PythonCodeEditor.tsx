@@ -25,7 +25,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
     const [pythonCode, setPythonCode] = useState("")
     const [themeName, setThemeName] = useState("vs-light")
     const [backgroundColor, setBackgroundColor] = useState("#fff")
-    const [evaluatingCode, setEvaluatingCode] = useState(true)
+    const [evaluatingCode, setEvaluatingCode] = useState(false)
     const [processingCode, setProcessingCode] = useState(false)
 
     // Python Console States
@@ -143,8 +143,8 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
     }, [themeName]);
 
     return (
-        <div className="w-full flex-1 container">
-            <p className="font-semibold">Python Code Editor. 
+        <div className="w-full flex-1 min-h-3/4 container">
+            <p className="font-semibold text-primary">Python Code Editor. 
             <br />
             <span className="text-xs font-normal text-blue-400">Enter your Python code here prior to it being run...</span>
             </p>

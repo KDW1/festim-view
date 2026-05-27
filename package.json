@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "node utils/themesUtil && next dev",
     "build": "next build",
+    "init": "conda config --add channels conda-forge && conda clean --all -y && conda create -n festim-env -y && conda activate festim-env && conda install -c conda-forge festim",
     "start:all": "concurrently \"npm run dev\" \"npm run start:backend\" \"npm run start:trame\"",
     "start:backend": "python ./python/backend.py",
-    "start:trame": "python ./python/trame/app.py",
+    "start:trame": "python ./python/trame/app.py --server",
     "start": "next start",
     "lint": "eslint"
   },
@@ -19,7 +20,6 @@
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@fortawesome/react-fontawesome": "^3.3.0",
     "@kitware/trame-iframe": "^1.1.1",
-    "@kitware/trame-react": "^1.2.1",
     "@monaco-editor/react": "^4.7.0",
     "next": "16.2.1",
     "react": "^19.2.5",

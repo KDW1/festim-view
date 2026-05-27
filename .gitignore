@@ -20,6 +20,8 @@
 # production
 /build
 
+/python/asyncioLoop.py
+
 # misc
 .DS_Store
 *.pem

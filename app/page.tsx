@@ -9,17 +9,19 @@ import TrameVisualizer from "@/components/TrameVisualizer";
 
 export default function Home() {
   const [args, setArgs] = useState<ConsoleArg[]>([])
-  const updateArgs = (newArgs:ConsoleArg[]) => {
-    setArgs(args=>[...args,...(newArgs.filter(el => el.message))])
+  const updateArgs = (newArgs: ConsoleArg[]) => {
+    setArgs(args => [...args, ...(newArgs.filter(el => el.message))])
   }
   return (
-    <div className="h-screen bg-blue-300">
-      <main className="px-16 py-8 h-full overflow-y-clip mx-auto flex flex-row gap-4">
-        <div className="flex flex-col w-1/2 space-y-4 h-full">
+    <div className="h-screen bg-blue-300 px-16 py-8">
+      <main className="relative h-full overflow-y-clip mx-auto flex flex-row gap-4">
         <PythonCodeEditor args={args} updateArgs={updateArgs} />
-        <PythonConsole args={args}/>
+        <div className="w-1/2 flex flex-col gap-4">
+        <div className="flex h-4/5">
+          <TrameVisualizer />
         </div>
-        <TrameVisualizer />
+          <PythonConsole args={args} />
+        </div>
       </main>
     </div>
   );

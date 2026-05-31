@@ -4,3 +4,5 @@ trame-iframe
 trame-vuetify
 trame-vtk
 vtk
+flask
+dotenv

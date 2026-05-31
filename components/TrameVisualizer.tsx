@@ -62,7 +62,7 @@ export default function TrameVisualizer({
       };
     }, [])
     return (
-        <div className="w-full flex-1 justify-center container">  
+        <div className="w-full flex flex-1 justify-center container">  
             <p className="font-semibold text-primary text-base">Resolution: <span className="font-normal">{resolution}</span></p>
             <iframe id={iframe_id} className="h-full" />
         </div>

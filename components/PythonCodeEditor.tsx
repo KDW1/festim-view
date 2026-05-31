@@ -143,10 +143,9 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
     }, [themeName]);
 
     return (
-        <div className="w-full flex-1 min-h-3/4 container">
+        <div className="w-full flex flex-1 container">
             <p className="font-semibold text-primary">Python Code Editor. 
             <br />
-            <span className="text-xs font-normal text-blue-400">Enter your Python code here prior to it being run...</span>
             </p>
             <select onChange={(e) => setThemeName(e.target.value)} className="select-container" name="" id="">
                 <option className="border-blue-400 border-2" value="vs-light">VS Light</option>

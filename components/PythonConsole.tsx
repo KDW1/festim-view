@@ -30,9 +30,9 @@ export default function PythonConsole({ args }: { args: ConsoleArg[] }) {
     }
 
     return (
-        <div className="w-full flex-1 min-h-0 flex container">
-            <p className="font-semibold text-primary">Python Console.</p>
-            <div className="h-4/5 flex flex-col overflow-y-auto pb-2 bg-slate-950 text-xs rounded-md">
+        <div className="flex-1 flex w-full z-10 max-h-1/4 shadow-2xl">
+            {/* <p className="font-semibold text-primary">Python Console.</p> */}
+            <div className="w-full flex flex-col overflow-y-auto bg-slate-950 text-xs rounded-md">
                 {
                     args.map((arg, i) => (
                         <code key={`arg${i}`} className={`w-full whitespace-pre-line px-4 py-2 font-mono ${argColors[arg.status]} border-b-2 border-slate-800`}>

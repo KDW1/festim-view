@@ -132,15 +132,15 @@ problem.exports = concentration_field_exports + derived_quantities
 problem.initialise()
 problem.run()
 
-
+print(np.abs(export.data))
 # post-processing: we can plot the results using the exports we created.
 
-fig, ax = plt.subplots()
-for export in derived_quantities:
-    ax.plot(export.t, np.abs(export.data), label=f"Flux at surface {export.surface.id}")
+# fig, ax = plt.subplots()
+# for export in derived_quantities:
+#     ax.plot(export.t, np.abs(export.data), label=f"Flux at surface {export.surface.id}")
 
-ax.set_yscale("log")
-ax.set_xlabel("Time (s)")
-ax.set_ylabel("Flux (mol/m^2/s) (absolute value)")
-ax.legend()
-plt.show()
+# ax.set_yscale("log")
+# ax.set_xlabel("Time (s)")
+# ax.set_ylabel("Flux (mol/m^2/s) (absolute value)")
+# ax.legend()
+# plt.show()

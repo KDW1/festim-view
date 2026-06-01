@@ -1,5 +1,6 @@
 import ClientCommunicator from "@kitware/trame-iframe"
 import { useEffect, useState } from "react"
+import { FESTIMSim } from "@/utils/simulations"
 
 // Entire structre is copied from trame-react since legacy dependencies with
 // react-scripts, react-dom is preventing the package from functioning normally
@@ -7,6 +8,8 @@ import { useEffect, useState } from "react"
 type VisualizerProps = {
   url: string;
   iframeId: string;
+  title: string;
+  simulation?: FESTIMSim;
   onCommunicatorReady: (communicator: unknown) => void;
 };
 
@@ -14,57 +17,81 @@ const iframe_id = "my_frame"
 const iframe_url = "http://localhost:8080/"
 
 export default function TrameVisualizer({
-    onCommunicatorReady
-} : VisualizerProps) {
-    const [resolution, setResolution] = useState("...")
-    
-    let listeners: Array<(e: Event) => void> = [];
-    let iframeClientCommunicator: unknown = null;
-    let iframe: HTMLElement | null = null;
+  onCommunicatorReady, simulation
+}: VisualizerProps) {
+  const tabs = simulation && simulation.steps ? ["Window", "FESTIM"] : ["Window"]
+  const [resolution, setResolution] = useState("...")
+  const [currentTab, setCurrentTab] = useState("window")
+  const [currentStep, setCurrentStep] = useState(simulation && simulation.steps ? simulation.steps[0].title : "")
 
-    onCommunicatorReady = (communicator : ClientCommunicator) => {
+  let listeners: Array<(e: Event) => void> = [];
+  let iframeClientCommunicator: unknown = null;
+  let iframe: HTMLElement | null = null;
+
+  onCommunicatorReady = (communicator: ClientCommunicator) => {
     communicator.state.onReady(() => {
-        communicator.state.watch(['resolution'], (e) => {
-            console.log("Resolution: ", e)
-            setResolution(e)
-        })
+      communicator.state.watch(['resolution'], (e) => {
+        console.log("Resolution: ", e)
+        setResolution(e)
+      })
     })
-}
+  }
 
-    useEffect(()=>{
+  useEffect(() => {
     console.log("Mounting trame visualizer component....")
-      let iframe = document.getElementById(iframe_id);
+    let iframe = document.getElementById(iframe_id);
 
-      if (iframe == null) {
-        throw new Error(`iframe ${iframe_id} not found`);
+    if (iframe == null) {
+      throw new Error(`iframe ${iframe_id} not found`);
+    }
+
+    const createClientCommunicator = () => {
+      let iframeClientCommunicator = new ClientCommunicator(iframe, iframe_url);
+      onCommunicatorReady(iframeClientCommunicator);
+      console.log("Creating client commuicator")
+    };
+    listeners.push(createClientCommunicator);
+    console.log("Iframe: ", iframe)
+    iframe.addEventListener('load', createClientCommunicator);
+    iframe.setAttribute("src", iframe_url)
+    console.log("Set src of iframe...")
+    return function unmount() {
+      if (iframe) {
+        listeners.forEach((l) => iframe.removeEventListener('load', l));
       }
 
-      const createClientCommunicator = () => {
-        let iframeClientCommunicator = new ClientCommunicator(iframe, iframe_url);
-        onCommunicatorReady(iframeClientCommunicator);
-        console.log("Creating client commuicator")
-      };
-      listeners.push(createClientCommunicator);
-      console.log("Iframe: ", iframe)
-      iframe.addEventListener('load', createClientCommunicator);
-      iframe.setAttribute("src", iframe_url)
-      console.log("Set src of iframe...")
-      return function unmount() {
-        if (iframe) {
-          listeners.forEach((l) => iframe.removeEventListener('load', l));
-        }
+      listeners = [];
 
-        listeners = [];
-
-        if (iframeClientCommunicator) {
-          iframeClientCommunicator.cleanup();
+      if (iframeClientCommunicator) {
+        iframeClientCommunicator.cleanup();
+      }
+    };
+  }, [])
+  return (
+    <div className="w-full flex flex-1 container text-base text-primary">
+      <p className="italic text-sm">{simulation ? simulation.title : "Trame Window"}</p>
+      <div className="flex gap-2 text-primary items-center rounded-md">
+        {
+          tabs.map((tab) =>
+          (
+            <button key={`option${tab}`} onClick={(e) => {
+              e.preventDefault()
+              setCurrentTab(tab.toLowerCase())
+            }} className={`cursor-pointer ease-in-out duration-300 transition ${tab.toLowerCase() == currentTab ? "bg-blue-300" : "bg-blue-100"} px-2 py-1 rounded-md`}>{tab}</button>
+          )
+          )
         }
-      };
-    }, [])
-    return (
-        <div className="w-full flex flex-1 justify-center container">  
-            <p className="font-semibold text-primary text-base">Resolution: <span className="font-normal">{resolution}</span></p>
-            <iframe id={iframe_id} className="h-full" />
-        </div>
-    )
+      </div>
+      <div className={`flex-col flex flex-1 ${currentTab == "window" ? "" : "hidden"}`}>
+        <p className="font-semibold text-primary text-base">Resolution: <span className="font-normal">{resolution}</span></p>
+        <iframe id={iframe_id} className="h-full w-full" />
+      </div>
+      {
+        currentTab == "festim" &&
+          <div className="flex-col flex-1">
+            <p className="text-primary text-base">{currentStep}</p>
+          </div>
+      }
+    </div>
+  )
 }

@@ -1,9 +1,18 @@
 export type FESTIMSetting = {
   title: string;
-  type: number | string | "enum" | boolean;
-  list: boolean;
+  type: string;
+  description?: string;
+  list?: boolean;
   options?: string[];
+  name?: string;
 }
+
+// TODO: 
+// 1. Add recipe for assembling Python variables
+// 2. Have some default Python code, so that even
+//    with empty fields we can have something
+// 3. Add the bindings that define how custom types,
+//    take in data
 
 // These settings cover types such as
 // diffusion constants -> number
@@ -11,38 +20,280 @@ export type FESTIMSetting = {
 // select values from a set of options -> enum
 // binary values like species mobility, transience -> boolean
 
-// Custom values like Materials, Subdomains, will get their own types
+// Custom values like Materials, Subdomains, 
+// will be recognized as non default types 
+// and a dictionary (soon to be made) will organize
+// those data types!
 
 // However, we also need to be able to make a list of values like
 // if we have a list of boundary conditions, subdomains 
 // hence the list value
 
 export type FESTIMStep = {
-  title: string
-  settings?: FESTIMSetting[]
+  title: string;
+  settings?: FESTIMSetting[];
+  recipe?: string; 
+  // The recipe will describe
+  // how the bindings should be parsed
+  // into Python code 
 }
 export type FESTIMSim = {
   title: string;
   steps?: FESTIMStep[]
 }
 
-export const presetSimulations : FESTIMSim[] = [
+const problemStep: FESTIMStep = {
+  title: "1. Problem",
+  settings: [
+    {
+      title: "Python variable",
+      type: "string"
+    },
+    {
+      title: "Problem Type",
+      type: "enum",
+      options: [
+        "HydrogenTransportProblemDiscontinuous",
+        "HydrogenTransportProblem"
+      ]
+    }
+  ]
+}
+const meshStep: FESTIMStep = {
+  title: "2. Mesh",
+  settings: [
+    {
+      title: "dolfinx mesh variable",
+      type: "string"
+    },
+    {
+      title: "nx",
+      type: "number"
+    },
+    {
+      title: "ny",
+      type: "number"
+    },
+    {
+      title: "xmin",
+      type: "number"
+    },
+    {
+      title: "xmax",
+      type: "number"
+    },
+    {
+      title: "ymin",
+      type: "number"
+    },
+    {
+      title: "ymax",
+      type: "number"
+    },
+    {
+      title: "Coordinate system",
+      type: "enum",
+      options: [
+        "cartesian",
+        "cylindrical",
+        "spherical"
+      ]
+    },
+    {
+      title: "Cell type",
+      type: "enum",
+      options: [
+        "triangle",
+        "quadrilateral"
+      ]
+    }
+  ]
+}
+
+const materialsStep : FESTIMStep ={
+  title: "3. Materials",
+  settings: [
+    {
+      title: "Materials",
+      type: "material",
+      list: true,
+    }
+  ]
+}
+
+const domainsStep : FESTIMStep = {
+  title: "4. Domains",
+  settings: [
+    {
+      title: "epsilon helper variable",
+      type: "number"
+    },
+    {
+      title: "Volume Subdomains",
+      type: "volume",
+      list: true
+    },
+    {
+      title: "Surface Subdomains",
+      type: "surface",
+      list: true
+    },
+    {
+      title: "Interfaces",
+      type: "interface",
+      list: true
+    }
+  ]
+}
+
+const speciesStep : FESTIMStep = {
+  title: "5a. Species",
+  settings: [
+    {
+      title: "Species",
+      type: "species",
+      list: true
+    }
+  ]
+}
+
+const initialConditionsStep : FESTIMStep = {
+  title: "5b. Initial Conditions",
+  settings: [
+    {
+      title: "Initial Concentrations",
+      type: "concentration",
+      list: true
+    }
+  ]
+}
+
+const reactionsStep : FESTIMStep = {
+  title: "5c. Reactions",
+  settings: [
+    {
+      title: "Reactions",
+      type: "reaction",
+      list: true
+    }
+  ]
+}
+
+const boundaryConditionsStep : FESTIMStep = {
+  title: "6. Boundary Conditions",
+  settings: [
+    {
+      title: "Boundary Conditions",
+      type: "boundary_condition",
+      list: true
+    }
+  ]
+}
+
+const particleSourcesStep : FESTIMStep = {
+  title: "7. Particle Sources",
+  settings: [
+    {
+      title: "Particle Sources",
+      type: "source",
+      list: true
+    }
+  ]
+}
+
+const temperatureStep : FESTIMStep = {
+  title: "8. Temperature",
+  settings: [
+    {
+      title: "Temperature (K)",
+      type: "number"
+    }
+  ]
+}
+
+const settingsStep : FESTIMStep = {
+  title: "9. Settings",
+  settings: [
+    {
+      title: "atoi",
+      type: "number"
+    },
+    {
+      title: "rtoi",
+      type: "number"
+    },
+    {
+      title: "transient",
+      type: "boolean"
+    },
+    {
+      title: "stepsize",
+      type: "number"
+    },
+    {
+      title: "final_time",
+      type: "number"
+    }
+  ]
+}
+
+const exportsStep : FESTIMStep = {
+  title: "10. Exports",
+  settings: [
+    {
+      title: "Field export list variable",
+      type: "string"
+    },
+    {
+      title: "Field export list variable",
+      type: "string"
+    },
+    {
+      title: "VTX Species Exports",
+      type: "vtx_export",
+      list: true
+    },
+    {
+      title: "Derived Quantities - Surface",
+      type: "surface_quantity",
+      list: true
+    },
+    {
+      title: "Derived Quantities - Volume",
+      type: "volume_quantity",
+      list: true
+    },
+  ]
+}
+
+const runStep : FESTIMStep = {
+  title: "11. Run",
+  settings: [
+    {
+      title: "Run",
+      type: "title",
+      description: "Proceed to run the simulation",
+    }
+  ]
+}
+
+export const presetSimulations: FESTIMSim[] = [
   {
     title: "2D Permeation",
     steps: [
-      {
-        title: "1. Problem",
-        settings: [
-          {
-            title: "Problem Type",
-            type: "enum",
-            options: [
-              "HydrogenTransportProblemDiscontinuous",
-              "HydrogenTransportProblem"
-            ]
-          }
-        ]
-      }
+      problemStep,
+      meshStep,
+      materialsStep,
+      domainsStep,
+      speciesStep,
+      initialConditionsStep,
+      reactionsStep,
+      boundaryConditionsStep,
+      particleSourcesStep,
+      temperatureStep,
+      settingsStep,
+      exportsStep,
+      runStep
     ]
   }
 ]

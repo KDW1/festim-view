@@ -50,12 +50,14 @@ export default function TrameVisualizer({
       onCommunicatorReady(iframeClientCommunicator);
       console.log("Creating client commuicator")
     };
+    
     listeners.push(createClientCommunicator);
     console.log("Iframe: ", iframe)
     iframe.addEventListener('load', createClientCommunicator);
     iframe.setAttribute("src", iframe_url)
     console.log("Set src of iframe...")
     return function unmount() {
+      console.log("Unmounting the client communicator")
       if (iframe) {
         listeners.forEach((l) => iframe.removeEventListener('load', l));
       }

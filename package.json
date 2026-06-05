@@ -7,7 +7,7 @@
     "dev": "node ./utils/themesUtil && next dev",
     "build": "next build",
     "init": "conda config --add channels conda-forge && conda clean --all -y && conda create -n festim-env -y && conda activate festim-env && conda install -c conda-forge festim",
-    "start:all": "concurrently \"npm run dev\" \"npm run start:backend\" \"npm run start:trame\"",
+    "start:frontend": "concurrently \"npm run dev\" \"npm run start:trame\"",
     "start:backend": "python ./python/backend.py",
     "start:trame": "python ./python/trame/app.py --server",
     "start": "next start",

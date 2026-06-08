@@ -2,6 +2,7 @@ import ClientCommunicator from "@kitware/trame-iframe"
 import { useEffect, useState } from "react"
 import { FESTIMSim } from "@/utils/simulations"
 import FESTIMCodePrompts from "./FESTIMCodePrompts";
+import { Bindings } from "@/app/page";
 
 // Entire structre is copied from trame-react since legacy dependencies with
 // react-scripts, react-dom is preventing the package from functioning normally
@@ -11,14 +12,16 @@ type VisualizerProps = {
   iframeId: string;
   title: string;
   simulation?: FESTIMSim;
+  updateBindings: Function;
   onCommunicatorReady: (communicator: unknown) => void;
+  bindings: Bindings[]
 };
 
 const iframe_id = "my_frame"
 const iframe_url = "http://localhost:8080/"
 
 export default function TrameVisualizer({
-  onCommunicatorReady, simulation
+  onCommunicatorReady, simulation, updateBindings, bindings
 }: VisualizerProps) {
   const tabs = simulation ? ["Window", "FESTIM"] : ["Window"]
   const [resolution, setResolution] = useState("...")
@@ -90,7 +93,7 @@ export default function TrameVisualizer({
       </div>
       {
         currentTab == "festim" && simulation &&
-        <FESTIMCodePrompts simulation={simulation} />
+        <FESTIMCodePrompts bindings={bindings} updateBindings={updateBindings} simulation={simulation} />
       }
     </div>
   )

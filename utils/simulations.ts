@@ -49,17 +49,20 @@ const problemStep: FESTIMStep = {
   settings: [
     {
       title: "Python variable",
+      name: "problem_variable",
       type: "string"
     },
     {
       title: "Problem Type",
       type: "enum",
+      name: "problem_type",
       options: [
         "HydrogenTransportProblemDiscontinuous",
         "HydrogenTransportProblem"
       ]
     }
-  ]
+  ],
+  recipe: "#1 Create empty problem\nproblem_variable=F.problem_type()"
 }
 const meshStep: FESTIMStep = {
   title: "2. Mesh",

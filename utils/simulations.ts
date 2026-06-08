@@ -31,6 +31,7 @@ export type FESTIMSetting = {
 
 export type FESTIMStep = {
   title: string;
+  description?: string;
   settings: FESTIMSetting[];
   recipe?: string; 
   // The recipe will describe
@@ -44,6 +45,7 @@ export type FESTIMSim = {
 
 const problemStep: FESTIMStep = {
   title: "1. Problem",
+  description: "Create the root FESTIM problem object.",
   settings: [
     {
       title: "Python variable",

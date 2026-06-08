@@ -70,7 +70,7 @@ export default function TrameVisualizer({
     };
   }, [])
   return (
-    <div className="w-full flex flex-1 container text-base text-primary">
+    <div className="w-full flex h-full container text-base text-primary">
       <p className="italic text-sm">{simulation ? simulation.title : "Trame Window"}</p>
       <div className="flex gap-2 text-primary items-center rounded-md">
         {
@@ -84,7 +84,7 @@ export default function TrameVisualizer({
           )
         }
       </div>
-      <div className={`flex-col flex flex-1 ${currentTab == "window" ? "" : "hidden"}`}>
+      <div className={`flex-col flex flex-1 ${currentTab == "window" ? "" : "hidden h-0"}`}>
         <p className="font-semibold text-primary text-base">Resolution: <span className="font-normal">{resolution}</span></p>
         <iframe id={iframe_id} className="h-full w-full" />
       </div>

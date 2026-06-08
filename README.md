@@ -1,6 +1,8 @@
 #### This is **FESTIMVIEW** which has three primary components:
 1. The Python Editor
-2. The Trame Visual Environment
+2. The Render Window
+- Trame Iframe
+- FESTIM Code Prompts
 3. The Backend Which Handles FESTIM-specific Calculations
 
 #### The Python Editor

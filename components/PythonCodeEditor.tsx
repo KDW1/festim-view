@@ -1,15 +1,4 @@
 "use client"
-// TODO: 
-// (TRAME RELATED)
-// - Make a Trame Mini-Demo or Display Component
-// - Get some basic Trame demo present
-// (CONSOLE RELATED)
-// - Handle the result from /exec and /eval [Done]
-// - Handle the output from /exec and /eval, [Done]
-// - Handle the errors from /exec and /eval, [Done]
-// (BACKEND RELATED)
-// - Establish a peristent namespace
-// - Establish only variable, function names but not libraries in namespace
 
 import { Editor, MonacoDiffEditor, useMonaco } from "@monaco-editor/react"
 import { useEffect, useRef, useState } from "react"
@@ -142,7 +131,7 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
             }
         }
     }, [themeName]);
-    
+
     return (
         <div className="w-full flex flex-1 container">
             <p className="font-semibold text-primary">Python Code Editor. 
@@ -188,7 +177,7 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
             <div className="flex gap-x-2 items-end">
                 <button disabled={processingCode} onClick={(e) => {
                     sendPythonRequest(pythonCode)
-                }} className={`px-2 py-1 cursor-pointer disabled:bg-gray-300 hover:bg-primarybg duration ease-in-out transition bg-lightbg rounded-md`}>
+                }} className={`px-2 py-1 cursor-pointer disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
                     Run Code
                 </button>
                 <span className="font-normal text-blue-200 italic">Ctrl+S</span>

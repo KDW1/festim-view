@@ -31,7 +31,7 @@ export type FESTIMSetting = {
 
 export type FESTIMStep = {
   title: string;
-  settings?: FESTIMSetting[];
+  settings: FESTIMSetting[];
   recipe?: string; 
   // The recipe will describe
   // how the bindings should be parsed
@@ -39,7 +39,7 @@ export type FESTIMStep = {
 }
 export type FESTIMSim = {
   title: string;
-  steps?: FESTIMStep[]
+  steps: FESTIMStep[]
 }
 
 const problemStep: FESTIMStep = {

@@ -13,10 +13,15 @@ export default function Home() {
   const updateArgs = (newArgs: ConsoleArg[]) => {
     setArgs(args => [...args, ...(newArgs.filter(el => el.message))])
   }
+
+  const [pythonCode, setPythonCode] = useState<string>("")
+  const updatePythonCode = (code : string) => {
+    setPythonCode(code)
+  }
   return (
-    <div className="h-screen bg-blue-300 px-16 py-8">
+    <div className="h-screen bg-primarybg px-16 py-8">
       <main className="relative h-full overflow-y-clip mx-auto flex flex-row gap-4">
-        <PythonCodeEditor args={args} updateArgs={updateArgs} />
+        <PythonCodeEditor pythonCode={pythonCode} updatePythonCode={updatePythonCode} args={args} updateArgs={updateArgs} />
         <div className="w-1/2 flex flex-col gap-4">
         <div className="flex h-4/5">
           <TrameVisualizer simulation={presetSimulations[0]} />

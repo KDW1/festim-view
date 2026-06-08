@@ -1,6 +1,7 @@
 import ClientCommunicator from "@kitware/trame-iframe"
 import { useEffect, useState } from "react"
 import { FESTIMSim } from "@/utils/simulations"
+import FESTIMCodePrompts from "./FESTIMCodePrompts";
 
 // Entire structre is copied from trame-react since legacy dependencies with
 // react-scripts, react-dom is preventing the package from functioning normally
@@ -19,10 +20,9 @@ const iframe_url = "http://localhost:8080/"
 export default function TrameVisualizer({
   onCommunicatorReady, simulation
 }: VisualizerProps) {
-  const tabs = simulation && simulation.steps ? ["Window", "FESTIM"] : ["Window"]
+  const tabs = simulation ? ["Window", "FESTIM"] : ["Window"]
   const [resolution, setResolution] = useState("...")
   const [currentTab, setCurrentTab] = useState("window")
-  const [currentStep, setCurrentStep] = useState(simulation && simulation.steps ? simulation.steps[0].title : "")
 
   let listeners: Array<(e: Event) => void> = [];
   let iframeClientCommunicator: unknown = null;
@@ -79,7 +79,7 @@ export default function TrameVisualizer({
             <button key={`option${tab}`} onClick={(e) => {
               e.preventDefault()
               setCurrentTab(tab.toLowerCase())
-            }} className={`cursor-pointer ease-in-out duration-300 transition ${tab.toLowerCase() == currentTab ? "bg-blue-300" : "bg-blue-100"} px-2 py-1 rounded-md`}>{tab}</button>
+            }} className={`cursor-pointer ease-in-out duration-300 transition ${tab.toLowerCase() == currentTab ? "bg-primarybg" : "bg-lightbg"} px-2 py-1 rounded-md`}>{tab}</button>
           )
           )
         }
@@ -89,10 +89,8 @@ export default function TrameVisualizer({
         <iframe id={iframe_id} className="h-full w-full" />
       </div>
       {
-        currentTab == "festim" &&
-          <div className="flex-col flex-1">
-            <p className="text-primary text-base">{currentStep}</p>
-          </div>
+        currentTab == "festim" && simulation &&
+        <FESTIMCodePrompts simulation={simulation} />
       }
     </div>
   )

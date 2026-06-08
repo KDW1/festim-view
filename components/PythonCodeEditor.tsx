@@ -19,10 +19,9 @@ import { ConsoleArg } from "./PythonConsole"
 
 const themeKeys = Object.keys(themes)
 
-export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[], updateArgs:Function}) {
+export default function PythonCodeEditor({pythonCode, updatePythonCode, args, updateArgs}:{pythonCode: string, updatePythonCode: Function, args: ConsoleArg[], updateArgs:Function}) {
     // Monaco Editor States
     const monaco = useMonaco()
-    const [pythonCode, setPythonCode] = useState("")
     const [themeName, setThemeName] = useState("vs-light")
     const [backgroundColor, setBackgroundColor] = useState("#fff")
     const [evaluatingCode, setEvaluatingCode] = useState(false)
@@ -96,6 +95,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
 
     }
     
+    // Key Handling for the Python Code Editor
     const handleKeyDown = (e : KeyboardEvent) => {
         if(e.ctrlKey || e.metaKey) {
             let key : string = e.key.toLowerCase()
@@ -123,6 +123,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
         }
     }, [sendPythonRequest])
 
+    // Monaco Editor Setup
     useEffect(() => {
 
         if (monaco) {
@@ -141,7 +142,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
             }
         }
     }, [themeName]);
-
+    
     return (
         <div className="w-full flex flex-1 container">
             <p className="font-semibold text-primary">Python Code Editor. 
@@ -164,7 +165,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
                     // TODO: Fix the onChange error where if you select and delete code it doesnt deleteW
                     onChange={(val: string | undefined) => {
                         if (!val) return
-                        setPythonCode(val)
+                        updatePythonCode(val)
                     }}
                 />
             </div>
@@ -187,7 +188,7 @@ export default function PythonCodeEditor({args, updateArgs}:{args: ConsoleArg[],
             <div className="flex gap-x-2 items-end">
                 <button disabled={processingCode} onClick={(e) => {
                     sendPythonRequest(pythonCode)
-                }} className={`px-2 py-1 cursor-pointer disabled:bg-gray-300 hover:bg-blue-300 duration ease-in-out transition bg-blue-200 rounded-md`}>
+                }} className={`px-2 py-1 cursor-pointer disabled:bg-gray-300 hover:bg-primarybg duration ease-in-out transition bg-lightbg rounded-md`}>
                     Run Code
                 </button>
                 <span className="font-normal text-blue-200 italic">Ctrl+S</span>

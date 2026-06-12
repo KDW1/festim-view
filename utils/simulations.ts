@@ -62,7 +62,7 @@ const problemStep: FESTIMStep = {
       ]
     }
   ],
-  recipe: "#1 Create empty problem\nproblem_variable=F.problem_type()"
+  recipe: "#1 Create empty problem\n{*problem_variable}=F.{*problem_type}()"
 }
 const meshStep: FESTIMStep = {
   title: "2. Mesh",

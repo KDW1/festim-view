@@ -9,7 +9,7 @@ type FESTIMCodePromptsProps = {
 }
 
 export default function FESTIMCodePrompts({ simulation, updateBindings, bindings }: FESTIMCodePromptsProps) {
-    // This will be a dictionary of bdingins corresponding to each step!
+    // This will be a dictionary of bindings corresponding to each step!
     const [currentIndex, setCurrentIndex] = useState(0)
     const [currentStep, setCurrentStep] = useState(simulation.steps[0])
 
@@ -17,11 +17,47 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
         return setting.name ?? setting.title
     }
 
-    const parseRecipe = (recipe : string) => {
-        console.log(bindings)
+    const parseRecipe = (recipe: string) => {
+        console.log("Bindings: ", bindings)
         let indexedBinding = bindings.filter(binding => binding.index == currentIndex)[0]
-        let parsedRecipe = recipe.replaceAll("problem_type", indexedBinding.values["problem_type"]).replaceAll("problem_variable", indexedBinding.values["problem_variable"])
-        return parsedRecipe
+        if(!indexedBinding) {
+            return recipe
+        }
+        let modifiedRecipe = recipe
+        modifiedRecipe = recipe.replaceAll("{", "--{--").replaceAll("}", "--}--")
+        let tokens = modifiedRecipe.split("--")
+
+        console.log("Indexed Binding: ", indexedBinding)
+        console.log(`Original: ${recipe}\nModified: ${modifiedRecipe}`)
+        console.log("Tokens: ", tokens)
+
+        const parse = (tokens: string[], start: number = 0) => {
+            let out: string[] = []
+            let currentIndex = start
+            while (currentIndex < tokens.length) {
+                let token = tokens[currentIndex]
+                if (token == "{") {
+                    let [followingTokens, nextIndex] = parse(tokens, currentIndex+1) as [string[], number]
+                    out = [...out, ...followingTokens]
+                    currentIndex = nextIndex
+                } else if (token == "}") {
+                    return [out, currentIndex + 1]
+                } else if (token[0] == "*") {
+                    let variableName = token.slice(1, token.length)
+                    out.push(indexedBinding.values[variableName])
+                    currentIndex += 1
+                } else {
+                    out.push(token)
+                    currentIndex += 1
+                }
+            }
+            console.log("Out: ", out)
+            return [out, currentIndex]
+        }
+        
+        let [parsedTokens, next_index] = parse(tokens, 0) as [string[], number]
+        console.log("Parsed Recipe: ", parsedTokens.join(""))
+        return parsedTokens.join("")
     }
 
     const correspondingField = (setting: FESTIMSetting, index: number) => {
@@ -29,7 +65,7 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
         switch (setting.type) {
             case "string":
                 return (
-                    <input key={`${setting.title}${index}`} onChange={(e)=>updateBindings(getBindingName(setting), index, e.target.value)} placeholder="abc..." type="text" className="mt-1 px-2 py-1 placeholder:italic placeholder:text-sm placeholder-primarybg border-2 border-primarybg transition duration-300 focus:border-black rounded-md" />
+                    <input key={`${setting.title}${index}`} onChange={(e) => updateBindings(getBindingName(setting), index, e.target.value)} placeholder="abc..." type="text" className="mt-1 px-2 py-1 placeholder:italic placeholder:text-sm placeholder-primarybg border-2 border-primarybg transition duration-300 focus:border-black rounded-md" />
                 )
             case "number":
                 return (
@@ -41,7 +77,7 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                 )
             case "enum":
                 return (
-                    <select onChange={(e)=>updateBindings(getBindingName(setting), index, e.target.value)} className="select-container" name="" id="">
+                    <select onChange={(e) => updateBindings(getBindingName(setting), index, e.target.value)} className="select-container" name="" id="">
                         {setting.options && setting.options.map((option, i) => (
                             <option className="border-blue-400 border-2" value={option} key={`${setting.title}${option}`}>{option}</option>
                         ))
@@ -72,13 +108,17 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                     ))
                 }
             </div>
-            <button onClick={()=>{
-                alert(currentStep.recipe ?? "There is no recipe here...")
+            {
+                currentStep.recipe && 
+            <button onClick={() => {
+                // alert(currentStep.recipe ?? "There is no recipe here...")
                 let parsedRecipe = parseRecipe(currentStep.recipe ?? "")
+                // console.log("Parsed Recipe: ", parsedRecipe)
                 alert(parsedRecipe)
             }} className="button mt-2">
                 Print Recipe
             </button>
+            }
             <div className="flex gap-2 mt-auto">
                 {
                     currentIndex != 0 &&

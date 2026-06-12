@@ -5,12 +5,13 @@ import { useEffect, useRef, useState } from "react"
 type FESTIMCodePromptsProps = {
     simulation: FESTIMSim;
     updateBindings: Function;
+    currentIndex: number;
+    setCurrentIndex: Function;
     bindings: Binding[]
 }
 
-export default function FESTIMCodePrompts({ simulation, updateBindings, bindings }: FESTIMCodePromptsProps) {
+export default function FESTIMCodePrompts({ simulation, updateBindings, bindings, currentIndex, setCurrentIndex }: FESTIMCodePromptsProps) {
     // This will be a dictionary of bindings corresponding to each step!
-    const [currentIndex, setCurrentIndex] = useState(0)
     const [currentStep, setCurrentStep] = useState(simulation.steps[0])
 
     const getBindingName = (setting: FESTIMSetting) => {

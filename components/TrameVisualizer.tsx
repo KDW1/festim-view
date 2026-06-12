@@ -2,7 +2,7 @@ import ClientCommunicator from "@kitware/trame-iframe"
 import { useEffect, useState } from "react"
 import { FESTIMSim } from "@/utils/simulations"
 import FESTIMCodePrompts from "./FESTIMCodePrompts";
-import { Bindings } from "@/app/page";
+import { Binding } from "@/app/page";
 
 // Entire structre is copied from trame-react since legacy dependencies with
 // react-scripts, react-dom is preventing the package from functioning normally
@@ -13,15 +13,16 @@ type VisualizerProps = {
   title: string;
   simulation?: FESTIMSim;
   updateBindings: Function;
+  updateMode: Function;
   onCommunicatorReady: (communicator: unknown) => void;
-  bindings: Bindings[]
+  bindings: Binding[]
 };
 
 const iframe_id = "my_frame"
 const iframe_url = "http://localhost:8080/"
 
 export default function TrameVisualizer({
-  onCommunicatorReady, simulation, updateBindings, bindings
+  onCommunicatorReady, simulation, updateBindings, bindings, updateMode
 }: VisualizerProps) {
   const tabs = simulation ? ["Window", "FESTIM"] : ["Window"]
   const [resolution, setResolution] = useState("...")
@@ -72,6 +73,7 @@ export default function TrameVisualizer({
       }
     };
   }, [])
+  
   return (
     <div className="w-full flex h-full container text-base text-primary">
       <p className="italic text-sm">{simulation ? simulation.title : "Trame Window"}</p>
@@ -82,6 +84,7 @@ export default function TrameVisualizer({
             <button key={`option${tab}`} onClick={(e) => {
               e.preventDefault()
               setCurrentTab(tab.toLowerCase())
+              updateMode(tab.toLowerCase())
             }} className={`cursor-pointer ease-in-out duration-300 transition ${tab.toLowerCase() == currentTab ? "bg-primarybg" : "bg-lightbg"} px-2 py-1 rounded-md`}>{tab}</button>
           )
           )

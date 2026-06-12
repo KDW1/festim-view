@@ -1,11 +1,11 @@
-import { Bindings } from "@/app/page"
+import { Binding } from "@/app/page";
 import { FESTIMSetting, FESTIMSim } from "@/utils/simulations"
 import { useEffect, useRef, useState } from "react"
 
 type FESTIMCodePromptsProps = {
     simulation: FESTIMSim;
     updateBindings: Function;
-    bindings: Bindings[]
+    bindings: Binding[]
 }
 
 export default function FESTIMCodePrompts({ simulation, updateBindings, bindings }: FESTIMCodePromptsProps) {
@@ -15,49 +15,6 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
 
     const getBindingName = (setting: FESTIMSetting) => {
         return setting.name ?? setting.title
-    }
-
-    const parseRecipe = (recipe: string) => {
-        console.log("Bindings: ", bindings)
-        let indexedBinding = bindings.filter(binding => binding.index == currentIndex)[0]
-        if(!indexedBinding) {
-            return recipe
-        }
-        let modifiedRecipe = recipe
-        modifiedRecipe = recipe.replaceAll("{", "--{--").replaceAll("}", "--}--")
-        let tokens = modifiedRecipe.split("--")
-
-        console.log("Indexed Binding: ", indexedBinding)
-        console.log(`Original: ${recipe}\nModified: ${modifiedRecipe}`)
-        console.log("Tokens: ", tokens)
-
-        const parse = (tokens: string[], start: number = 0) => {
-            let out: string[] = []
-            let currentIndex = start
-            while (currentIndex < tokens.length) {
-                let token = tokens[currentIndex]
-                if (token == "{") {
-                    let [followingTokens, nextIndex] = parse(tokens, currentIndex+1) as [string[], number]
-                    out = [...out, ...followingTokens]
-                    currentIndex = nextIndex
-                } else if (token == "}") {
-                    return [out, currentIndex + 1]
-                } else if (token[0] == "*") {
-                    let variableName = token.slice(1, token.length)
-                    out.push(indexedBinding.values[variableName])
-                    currentIndex += 1
-                } else {
-                    out.push(token)
-                    currentIndex += 1
-                }
-            }
-            console.log("Out: ", out)
-            return [out, currentIndex]
-        }
-        
-        let [parsedTokens, next_index] = parse(tokens, 0) as [string[], number]
-        console.log("Parsed Recipe: ", parsedTokens.join(""))
-        return parsedTokens.join("")
     }
 
     const correspondingField = (setting: FESTIMSetting, index: number) => {
@@ -78,6 +35,7 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
             case "enum":
                 return (
                     <select onChange={(e) => updateBindings(getBindingName(setting), index, e.target.value)} className="select-container" name="" id="">
+                        <option className="border-blue-400 border-2" selected>Select a value</option>
                         {setting.options && setting.options.map((option, i) => (
                             <option className="border-blue-400 border-2" value={option} key={`${setting.title}${option}`}>{option}</option>
                         ))
@@ -89,10 +47,9 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
         }
     }
     return (
-        <div className="flex-col flex flex-1 text-primary text-base">
+        <div className="text-primary flex flex-1 flex-col text-base">
             <p className="font-semibold">{currentStep.title}</p>
             {currentStep.description && <p className="italic text-xs mb-2">{currentStep.description}</p>}
-            <code className="text-xs">{JSON.stringify(currentStep, null, "\t")}</code>
             <div className="gap-4 flex-col flex max-h-72 overflow-y-auto pr-2">
                 {
                     currentStep.settings.map((setting, i) => (
@@ -108,17 +65,6 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                     ))
                 }
             </div>
-            {
-                currentStep.recipe && 
-            <button onClick={() => {
-                // alert(currentStep.recipe ?? "There is no recipe here...")
-                let parsedRecipe = parseRecipe(currentStep.recipe ?? "")
-                // console.log("Parsed Recipe: ", parsedRecipe)
-                alert(parsedRecipe)
-            }} className="button mt-2">
-                Print Recipe
-            </button>
-            }
             <div className="flex gap-2 mt-auto">
                 {
                     currentIndex != 0 &&

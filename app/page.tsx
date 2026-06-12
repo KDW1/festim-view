@@ -1,24 +1,28 @@
 "use client"
 import PythonCodeEditor from "@/components/PythonCodeEditor";
 import PythonConsole, { ConsoleArg } from "@/components/PythonConsole";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import TrameVisualizer from "@/components/TrameVisualizer";
-import { FESTIMSetting, presetSimulations } from "@/utils/simulations";
+import { FESTIMSetting, FESTIMSim, presetSimulations } from "@/utils/simulations";
 type Dictionary = {
-  [key: string] : any
+  [key: string]: any
 }
-export type Bindings = {
+export type Binding = {
   index: number,
+  snippet: string,
   values: {
-    [key: string] : any
-  }
+    [key: string]: any
+  },
+  recipe: string
 }
 
 export default function Home() {
-  const [bindings, setBindings] = useState<Bindings[]>([]) // Bindings for selected simulations
+  const [mode, setMode] = useState<"window" | "festim">("window")
+  const [bindings, setBindings] = useState<Binding[]>([]) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
+  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(presetSimulations[0])
   const updateArgs = (newArgs: ConsoleArg[]) => {
     setArgs(args => [...args, ...(newArgs.filter(el => el.message))])
   }
@@ -29,28 +33,89 @@ export default function Home() {
     setPythonCode(code)
   }
 
+  useEffect(() => {
+    if (currentSimulation) {
+      let bindings: Binding[] = []
+      for (let i = 0; i < currentSimulation.steps.length; i++) {
+        let step = currentSimulation.steps[i]
+        bindings.push({
+          index: i,
+          snippet: "",
+          values: {},
+          recipe: step.recipe ?? ""
+        })
+      }
+      console.log("Bindings: ", bindings)
+      setBindings(bindings)
+    }
+  }, [])
+
+
+  const parseRecipe = (indexedBinding: Binding) => {
+    let recipe = indexedBinding.recipe
+    let modifiedRecipe = recipe
+    modifiedRecipe = recipe.replaceAll("{", "--{--").replaceAll("}", "--}--")
+    let tokens = modifiedRecipe.split("--")
+
+    console.log("Indexed Binding: ", indexedBinding)
+    console.log(`Original: ${recipe}\nModified: ${modifiedRecipe}`)
+    console.log("Tokens: ", tokens)
+
+    const parse = (tokens: string[], start: number = 0) => {
+      let out: string[] = []
+      let currentIndex = start
+      while (currentIndex < tokens.length) {
+        let token = tokens[currentIndex]
+        if (token == "{") {
+          let [followingTokens, nextIndex] = parse(tokens, currentIndex + 1) as [string[], number]
+          out = [...out, ...followingTokens]
+          currentIndex = nextIndex
+        } else if (token == "}") {
+          return [out, currentIndex + 1]
+        } else if (token[0] == "*") {
+          let variableName = token.slice(1, token.length)
+          out.push(indexedBinding.values[variableName])
+          currentIndex += 1
+        } else {
+          out.push(token)
+          currentIndex += 1
+        }
+      }
+      console.log("Out: ", out)
+      return [out, currentIndex]
+    }
+
+    let [parsedTokens, next_index] = parse(tokens, 0) as [string[], number]
+    console.log("Parsed Recipe: ", parsedTokens.join(""))
+    return parsedTokens.join("")
+  }
+
   const updateBindings = (binding: string, index: number, value: any) => {
     let indexedBinding = bindings.filter(binding => binding.index == index)[0]
     console.log("Binding Found: ", indexedBinding)
-    if (!indexedBinding) {
-      indexedBinding = {index, values: {}}
-    }
     indexedBinding.values[binding] = value
-    console.log("Updated Binding: ", indexedBinding)
+    if(indexedBinding.recipe) {
+      let parsedRecipe = parseRecipe(indexedBinding)
+      indexedBinding.snippet = parsedRecipe
+      setPythonCode(parsedRecipe)
+    }
+    console.log("Binding: ", indexedBinding)
     let updatedBindings = [...bindings.filter(b => b.index != index), indexedBinding]
-    console.log(updatedBindings)
     setBindings(updatedBindings)
   }
 
+
   return (
     <div className="h-screen bg-primarybg px-16 py-8">
-      <main className="relative h-full overflow-y-clip mx-auto flex flex-row gap-4">
-        <PythonCodeEditor pythonCode={pythonCode} updatePythonCode={updatePythonCode} args={args} updateArgs={updateArgs} />
+      <main className="relative w-full h-full overflow-y-clip mx-auto flex flex-row gap-4">
+        <div className="w-1/2 h-full flex flex-col flex-1 relative">
+                <PythonCodeEditor mode={mode} pythonCode={pythonCode} updatePythonCode={updatePythonCode} args={args} updateArgs={updateArgs} />
+        </div>
         <div className="w-1/2 flex flex-col gap-4">
-          <div className="flex h-4/5">
-            <TrameVisualizer bindings={bindings} updateBindings={updateBindings} simulation={presetSimulations[0]} />
+          <div className="flex flex-1 h-4/5">
+            <TrameVisualizer updateMode={(mode : string) => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={presetSimulations[0]} />
           </div>
-          <PythonConsole args={args} />
+          <PythonConsole  args={args} />
         </div>
       </main>
     </div>

@@ -8,7 +8,15 @@ import { ConsoleArg } from "./PythonConsole"
 
 const themeKeys = Object.keys(themes)
 
-export default function PythonCodeEditor({pythonCode, updatePythonCode, args, updateArgs}:{pythonCode: string, updatePythonCode: Function, args: ConsoleArg[], updateArgs:Function}) {
+type CodeEditorProps = {
+    pythonCode: string,
+    updatePythonCode: Function,
+    args: ConsoleArg[],
+    updateArgs: Function,
+    mode: "window" | "festim"
+}
+
+export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, updateArgs, mode }: CodeEditorProps) {
     // Monaco Editor States
     const monaco = useMonaco()
     const [themeName, setThemeName] = useState("vs-light")
@@ -27,7 +35,7 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
             status: "info"
         }])
         let apiURL = evaluatingCode ? "/api/eval" : "/api/exec"
-        console.log("Code passed in: ", JSON.stringify({code}))
+        console.log("Code passed in: ", JSON.stringify({ code }))
         try {
             let data = await fetch(apiURL, {
                 method: "POST",
@@ -48,7 +56,7 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
                 }])
             } else {
                 console.log(`Data from ${apiURL},`, data)
-                if(evaluatingCode) {
+                if (evaluatingCode) {
                     updateArgs([{
                         message: "Successfully evaluated code...",
                         status: "info"
@@ -56,10 +64,11 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
                     updateArgs([{
                         message: data.result,
                         status: "evaluation"
-                    },{
+                    }, {
                         message: data.output,
                         status: "output"
-,                    }])
+                        ,
+                    }])
                 } else {
                     updateArgs([{
                         message: "Successfully executed code...",
@@ -83,11 +92,11 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
         setProcessingCode(false)
 
     }
-    
+
     // Key Handling for the Python Code Editor
-    const handleKeyDown = (e : KeyboardEvent) => {
-        if(e.ctrlKey || e.metaKey) {
-            let key : string = e.key.toLowerCase()
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            let key: string = e.key.toLowerCase()
             console.log("Key pressed down was: ", key)
             switch (key) {
                 case "s":
@@ -99,13 +108,13 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
                     e.preventDefault()
                     setEvaluatingCode(!evaluatingCode)
                     break
-                
+
 
             }
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         window.addEventListener("keydown", handleKeyDown)
         return () => {
             window.removeEventListener("keydown", handleKeyDown)
@@ -134,8 +143,8 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
 
     return (
         <div className="w-full flex flex-1 container">
-            <p className="font-semibold text-primary">Python Code Editor. 
-            <br />
+            <p className="font-semibold text-primary">Python Code Editor.
+                <br />
             </p>
             <select onChange={(e) => setThemeName(e.target.value)} className="select-container" name="" id="">
                 <option className="border-blue-400 border-2" value="vs-light">VS Light</option>
@@ -151,11 +160,15 @@ export default function PythonCodeEditor({pythonCode, updatePythonCode, args, up
                     theme="nightowl"
                     defaultLanguage="python"
                     value={pythonCode}
+                    options={{
+                        readOnly: mode == "festim"
+                    }}
                     // TODO: Fix the onChange error where if you select and delete code it doesnt deleteW
                     onChange={(val: string | undefined) => {
                         if (!val) return
                         updatePythonCode(val)
                     }}
+
                 />
             </div>
             <div className="flex gap-x-2 items-center">

@@ -26,16 +26,16 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                 )
             case "number":
                 return (
-                    <input key={`${setting.title}${index}`} placeholder="0.0" type="number" className="mt-1 px-2 py-1 placeholder:italic placeholder:text-sm placeholder-primarybg border-2 border-primarybg transition duration-300 focus:border-black rounded-md" />
+                    <input key={`${setting.title}${index}`} onChange={(e) => updateBindings(getBindingName(setting), index, e.target.value)} placeholder="0.0" type="number" className="mt-1 px-2 py-1 placeholder:italic placeholder:text-sm placeholder-primarybg border-2 border-primarybg transition duration-300 focus:border-black rounded-md" />
                 )
             case "boolean":
                 return (
-                    <input key={`${setting.title}${index}`} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
+                    <input key={`${setting.title}${index}`} onChange={(e) => updateBindings(getBindingName(setting), index, e.target.value)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
                 )
             case "enum":
                 return (
                     <select onChange={(e) => updateBindings(getBindingName(setting), index, e.target.value)} className="select-container" name="" id="">
-                        <option className="border-blue-400 border-2" selected>Select a value</option>
+                        <option className="border-blue-400 border-2" >Select a value</option>
                         {setting.options && setting.options.map((option, i) => (
                             <option className="border-blue-400 border-2" value={option} key={`${setting.title}${option}`}>{option}</option>
                         ))

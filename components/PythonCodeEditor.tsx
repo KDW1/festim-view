@@ -13,10 +13,12 @@ type CodeEditorProps = {
     updatePythonCode: Function,
     args: ConsoleArg[],
     updateArgs: Function,
-    mode: "window" | "festim"
+    mode: "window" | "festim",
+    snippetOnly: Boolean,
+    setSnippetOnly: Function
 }
 
-export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, updateArgs, mode }: CodeEditorProps) {
+export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, updateArgs, mode, snippetOnly, setSnippetOnly}: CodeEditorProps) {
     // Monaco Editor States
     const monaco = useMonaco()
     const [themeName, setThemeName] = useState("vs-light")

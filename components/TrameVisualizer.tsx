@@ -8,9 +8,6 @@ import { Binding } from "@/app/page";
 // react-scripts, react-dom is preventing the package from functioning normally
 
 type VisualizerProps = {
-  url: string;
-  iframeId: string;
-  title: string;
   simulation?: FESTIMSim;
   updateBindings: Function;
   updateMode: Function;

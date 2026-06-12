@@ -20,6 +20,7 @@ export type Binding = {
 
 export default function Home() {
   const [mode, setMode] = useState<"window" | "festim">("window")
+  const [snippetOnly, setSnippetOnly] = useState<Boolean>(true)
   const [bindings, setBindings] = useState<Binding[]>([]) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(presetSimulations[0])
@@ -67,15 +68,11 @@ export default function Home() {
       while (currentIndex < tokens.length) {
         let token = tokens[currentIndex]
         if (token == "{") {
-          let [followingTokens, nextIndex] = parse(tokens, currentIndex + 1) as [string[], number]
-          out = [...out, ...followingTokens]
-          currentIndex = nextIndex
-        } else if (token == "}") {
-          return [out, currentIndex + 1]
-        } else if (token[0] == "*") {
-          let variableName = token.slice(1, token.length)
+          // let [followingTokens, nextIndex] = parse(tokens, currentIndex + 1) as [string[], number]
+          currentIndex += 1 // Set to variable index
+          let variableName = tokens[currentIndex]
           out.push(indexedBinding.values[variableName])
-          currentIndex += 1
+          currentIndex += 2 // Skip over the closing }
         } else {
           out.push(token)
           currentIndex += 1
@@ -94,7 +91,7 @@ export default function Home() {
     let indexedBinding = bindings.filter(binding => binding.index == index)[0]
     console.log("Binding Found: ", indexedBinding)
     indexedBinding.values[binding] = value
-    if(indexedBinding.recipe) {
+    if (indexedBinding.recipe) {
       let parsedRecipe = parseRecipe(indexedBinding)
       indexedBinding.snippet = parsedRecipe
       setPythonCode(parsedRecipe)
@@ -109,13 +106,13 @@ export default function Home() {
     <div className="h-screen bg-primarybg px-16 py-8">
       <main className="relative w-full h-full overflow-y-clip mx-auto flex flex-row gap-4">
         <div className="w-1/2 h-full flex flex-col flex-1 relative">
-                <PythonCodeEditor mode={mode} pythonCode={pythonCode} updatePythonCode={updatePythonCode} args={args} updateArgs={updateArgs} />
+          <PythonCodeEditor snippetOnly={snippetOnly} setSnippetOnly={(value: Boolean) => setSnippetOnly(value)} mode={mode} pythonCode={pythonCode} updatePythonCode={updatePythonCode} args={args} updateArgs={updateArgs} />
         </div>
         <div className="w-1/2 flex flex-col gap-4">
           <div className="flex flex-1 h-4/5">
-            <TrameVisualizer updateMode={(mode : string) => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={presetSimulations[0]} />
+            <TrameVisualizer updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={presetSimulations[0]} />
           </div>
-          <PythonConsole  args={args} />
+          <PythonConsole args={args} />
         </div>
       </main>
     </div>

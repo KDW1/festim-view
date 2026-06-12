@@ -62,17 +62,19 @@ const problemStep: FESTIMStep = {
       ]
     }
   ],
-  recipe: "#1 Create empty problem\n{*problem_variable}=F.{*problem_type}()"
+  recipe: "#1 Create empty problem\n{problem_variable}=F.{problem_type}()"
 }
 const meshStep: FESTIMStep = {
   title: "2. Mesh",
   settings: [
     {
       title: "dolfinx mesh variable",
+      name: "dolfinx_mesh_variable",
       type: "string"
     },
     {
       title: "nx",
+      name:"nx",
       type: "number"
     },
     {
@@ -97,6 +99,7 @@ const meshStep: FESTIMStep = {
     },
     {
       title: "Coordinate system",
+      name: "coordinate_system",
       type: "enum",
       options: [
         "cartesian",
@@ -106,13 +109,30 @@ const meshStep: FESTIMStep = {
     },
     {
       title: "Cell type",
+      name: "cell_type",
       type: "enum",
       options: [
         "triangle",
         "quadrilateral"
       ]
     }
-  ]
+  ],
+  recipe: `# 2. Create mesh
+# here we create a 2D rectangular mesh.
+nx = {nx}
+ny = {ny}
+
+coordinate_system = "{coordinate_system}"
+
+lower_left = np.array([{xmin}, {xmax}])
+upper_right = np.array([{ymin}, {ymax}])
+cell_type = dolfinx.mesh.CellType.{cell_type}
+
+{dolfinx_mesh_variable} = dolfinx.mesh.create_rectangle(
+    MPI.COMM_WORLD, [lower_left, upper_right], [nx, ny], cell_type=cell_type
+)
+problem.mesh = F.Mesh({dolfinx_mesh_variable}, coordinate_system=coordinate_system)
+`
 }
 
 const materialsStep : FESTIMStep ={

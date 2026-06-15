@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import TrameVisualizer from "@/components/TrameVisualizer";
-import { FESTIMSetting, FESTIMSim, presetSimulations } from "@/utils/simulations";
+import { customClasses, FESTIMSetting, FESTIMSim, FESTIMStep, presetSimulations } from "@/utils/simulations";
 type Dictionary = {
   [key: string]: any
 }
@@ -84,8 +84,8 @@ export default function Home() {
     }
   }
 
-  const updateBindings = (binding: string, index: number, value: any) => {
-    let indexedBinding = bindings[index]
+  const updateBindings = (binding: string, value: any) => {
+    let indexedBinding = bindings[currentIndex]
     console.log("Binding Found: ", indexedBinding)
     indexedBinding.values[binding] = value
     if (indexedBinding.recipe) {
@@ -93,7 +93,7 @@ export default function Home() {
     }
     console.log("Binding: ", indexedBinding)
     let updatedBindings = bindings
-    updatedBindings[index] = indexedBinding
+    updatedBindings[currentIndex] = indexedBinding
     setBindings(updatedBindings)
   }
 
@@ -102,11 +102,20 @@ export default function Home() {
     if (currentSimulation) {
       let bindings: Binding[] = []
       for (let i = 0; i < currentSimulation.steps.length; i++) {
-        let step = currentSimulation.steps[i]
+        let step : FESTIMStep = currentSimulation.steps[i]
+        let values : { [key: string] : any} = {}
+        for(let setting  of step.settings) {
+          let binding = setting.name ?? setting.title
+          if(setting.defaultValue) {
+            values[binding] = setting.defaultValue
+          } else {
+            values[binding] = (setting.type in customClasses) ? {} : ""
+          }
+        }
         bindings.push({
           index: i,
           snippet: "",
-          values: {},
+          values,
           recipe: step.recipe ?? ""
         })
       }

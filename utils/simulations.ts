@@ -5,6 +5,7 @@ export type FESTIMSetting = {
   list?: boolean;
   options?: string[];
   name?: string;
+  defaultValue?: string;
 }
 
 // TODO: 

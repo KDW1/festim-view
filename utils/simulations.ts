@@ -46,7 +46,7 @@ export type FESTIMSim = {
 export type ClassDictionary = {
   [key: string]: FESTIMSetting[]
 }
-const customClasses: ClassDictionary = {
+export const customClasses: ClassDictionary = {
   "material": [
     {
       title: "Variable",

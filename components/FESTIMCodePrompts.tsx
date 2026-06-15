@@ -1,5 +1,5 @@
 import { Binding } from "@/app/page";
-import { FESTIMSetting, FESTIMSim } from "@/utils/simulations"
+import { FESTIMSetting, FESTIMSim, customClasses } from "@/utils/simulations"
 import { ChangeEvent, useEffect, useRef, useState } from "react"
 
 type FESTIMCodePromptsProps = {
@@ -21,31 +21,31 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
         return setting.name ?? setting.title
     }
 
-    const correspondingField = (setting: FESTIMSetting, index: number) => {
+    const correspondingField = (setting: FESTIMSetting) => {
         let indexedBindings = bindings[currentIndex]
         const getBindingOfSetting = (setting: FESTIMSetting) => {
             return indexedBindings.values[setting.name ?? setting.title] ?? ""
         }
-        const eventHandler = (e: ChangeEvent<HTMLInputElement, HTMLInputElement>, index: number, setting: FESTIMSetting) => {
-            updateBindings(getBindingName(setting), index, e.target.value)
+        const eventHandler = (e: ChangeEvent<HTMLInputElement, HTMLInputElement>, setting: FESTIMSetting) => {
+            updateBindings(getBindingName(setting), currentIndex, e.target.value)
         }
         // Assign values to what they are associated with in the binding, if they are bound to
         switch (setting.type) {
             case "string":
                 return (
-                    <input value={getBindingOfSetting(setting)} key={`${setting.title}${index}`} onChange={(e) => eventHandler(e, index, setting)} placeholder="abc..." type="text" className="input" />
+                    <input value={getBindingOfSetting(setting)} key={`${setting.title}${currentIndex}`} onChange={(e) => eventHandler(e, setting)} placeholder="abc..." type="text" className="input" />
                 )
             case "number":
                 return (
-                    <input value={getBindingOfSetting(setting)} key={`${setting.title}${index}`} onChange={(e) => eventHandler(e, index, setting)} placeholder="0.0" step={0.1} type="number" className="input" />
+                    <input value={getBindingOfSetting(setting)} key={`${setting.title}${currentIndex}`} onChange={(e) => eventHandler(e, setting)} placeholder="0.0" step={0.1} type="number" className="input" />
                 )
             case "boolean":
                 return (
-                    <input value={getBindingOfSetting(setting)} key={`${setting.title}${index}`} onChange={(e) => eventHandler(e, index, setting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
+                    <input value={getBindingOfSetting(setting)} key={`${setting.title}${currentIndex}`} onChange={(e) => eventHandler(e, setting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
                 )
             case "enum":
                 return (
-                    <select value={getBindingOfSetting(setting)} onChange={(e) => eventHandler(e, index, setting)} className="select-container" name="" id="">
+                    <select value={getBindingOfSetting(setting)} onChange={(e) => eventHandler(e, currentIndex, setting)} className="select-container" name="" id="">
                         <option value={""} className="border-blue-400 border-2" >Select a value</option>
                         {setting.options && setting.options.map((option, i) => (
                             <option className="border-blue-400 border-2" value={option} key={`${setting.title}${option}`}>{option}</option>
@@ -53,50 +53,22 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                         }
                     </select>
                 )
-            case "material":
-                // mat_1 = F.Material(name="", D_0=0.0, E_D=0.0, K_S_0=0.0, E_K_S=0.0)
-                return (
-                    <div className="flex flex-col gap-y-2">
-                        <div className="flex flex-col">
-                            <p className="text-sm">
-                                Variable, variable name
-                            </p>
-                            <input onChange={(e) => eventHandler(e, index, setting)} placeholder="abc..." type="text" className="input" />
-                        </div>
-                        <div className="flex flex-col">
-                            <p className="text-sm">
-                                Name, the name of the material
-                            </p>
-                            <input onChange={(e) => eventHandler(e, index, setting)} placeholder="abc..." type="text" className="input" />
-                        </div>
-                        <div className="flex flex-col">
-                            <p className="text-sm">
-                                D_0, the pre-exponential factor of the diffusion coefficient (m2/s)
-                            </p>
-                            <input onChange={(e) => eventHandler(e, index, setting)} placeholder="0.0" type="number" className="input" />
-                        </div>
-                        <div className="flex flex-col">
-                            <p className="text-sm">
-                                E_D, the activation energy of the diffusion coefficient (eV)
-                            </p>
-                            <input onChange={(e) => eventHandler(e, index, setting)} placeholder="0.0" type="number" className="input" />
-                        </div>
-                        <div className="flex flex-col">
-                            <p className="text-sm">
-                                K_S, the pre-exponential factor of the solubility coefficient (H/m3/Pa0.5)
-                            </p>
-                            <input onChange={(e) => eventHandler(e, index, setting)} placeholder="0.0" type="number" className="input" />
-                        </div>
-                        <div className="flex flex-col">
-                            <p className="text-sm">
-                                K_S_0, the activation energy of the solubility coeficient (eV)
-                            </p>
-                            <input onChange={(e) => eventHandler(e, index, setting)} placeholder="0.0" type="number" className="input" />
-                        </div>
-                    </div>
-                )
             default:
-                return (<p className="italic text-primarybg">Working on developing that type...</p>)
+                if (setting.type in customClasses) {
+                    return (
+                    <div className="flex flex-col gap-y-2">
+                        {customClasses[setting.type].map(setting => (
+                            <div className="flex flex-col">
+                                <p className="text-sm">
+                                   {setting.title}{setting.description && <em>, {setting.description}</em>}
+                                </p>
+                                {correspondingField(setting)}
+                            </div>
+                        ))}
+                    </div>)
+                } else {
+                    return (<p className="italic text-primarybg">Working on developing that type...</p>)
+                }
         }
     }
     return (

@@ -33,7 +33,7 @@ export type FESTIMStep = {
   title: string;
   description?: string;
   settings: FESTIMSetting[];
-  recipe?: string; 
+  recipe?: string;
   // The recipe will describe
   // how the bindings should be parsed
   // into Python code 
@@ -41,6 +41,50 @@ export type FESTIMStep = {
 export type FESTIMSim = {
   title: string;
   steps: FESTIMStep[]
+}
+
+export type ClassDictionary = {
+  [key: string]: FESTIMSetting[]
+}
+const customClasses: ClassDictionary = {
+  "material": [
+    {
+      title: "Variable",
+      description: "variable name",
+      name: "variable",
+      type: "string"
+    },
+    {
+      title: "Name",
+      description: "the name of the material",
+      name: "name",
+      type: "string"
+    },
+    {
+      title: "D_0",
+      description: "the pre-exponential factor of the diffusion coefficient (m2/s)",
+      name: "D_0",
+      type: "number"
+    },
+    {
+      title: "E_D",
+      description: "the activation energy of the diffusion coefficient (eV)",
+      name: "E_D",
+      type: "number"
+    },
+    {
+      title: "K_S",
+      description: "the pre-exponential factor of the solubility coefficient (H/m3/Pa0.5)",
+      name: "K_S",
+      type: "number"
+    },
+    {
+      title: "K_S_0",
+      description: "the activation energy of the solubility coeficient (eV)",
+      name: "K_S_0",
+      type: "number"
+    }
+  ]
 }
 
 const problemStep: FESTIMStep = {
@@ -74,7 +118,7 @@ const meshStep: FESTIMStep = {
     },
     {
       title: "nx",
-      name:"nx",
+      name: "nx",
       type: "number"
     },
     {
@@ -124,8 +168,8 @@ ny = {ny}
 
 coordinate_system = "{coordinate_system}"
 
-lower_left = np.array([{xmin}, {xmax}])
-upper_right = np.array([{ymin}, {ymax}])
+lower_left = np.array([{xmin}, {ymin}])
+upper_right = np.array([{xmax}, {ymax}])
 cell_type = dolfinx.mesh.CellType.{cell_type}
 
 {dolfinx_mesh_variable} = dolfinx.mesh.create_rectangle(
@@ -135,7 +179,7 @@ problem.mesh = F.Mesh({dolfinx_mesh_variable}, coordinate_system=coordinate_syst
 `
 }
 
-const materialsStep : FESTIMStep ={
+const materialsStep: FESTIMStep = {
   title: "3. Materials",
   settings: [
     {
@@ -146,7 +190,7 @@ const materialsStep : FESTIMStep ={
   ]
 }
 
-const domainsStep : FESTIMStep = {
+const domainsStep: FESTIMStep = {
   title: "4. Domains",
   settings: [
     {
@@ -171,7 +215,7 @@ const domainsStep : FESTIMStep = {
   ]
 }
 
-const speciesStep : FESTIMStep = {
+const speciesStep: FESTIMStep = {
   title: "5a. Species",
   settings: [
     {
@@ -182,7 +226,7 @@ const speciesStep : FESTIMStep = {
   ]
 }
 
-const initialConditionsStep : FESTIMStep = {
+const initialConditionsStep: FESTIMStep = {
   title: "5b. Initial Conditions",
   settings: [
     {
@@ -193,7 +237,7 @@ const initialConditionsStep : FESTIMStep = {
   ]
 }
 
-const reactionsStep : FESTIMStep = {
+const reactionsStep: FESTIMStep = {
   title: "5c. Reactions",
   settings: [
     {
@@ -204,7 +248,7 @@ const reactionsStep : FESTIMStep = {
   ]
 }
 
-const boundaryConditionsStep : FESTIMStep = {
+const boundaryConditionsStep: FESTIMStep = {
   title: "6. Boundary Conditions",
   settings: [
     {
@@ -215,7 +259,7 @@ const boundaryConditionsStep : FESTIMStep = {
   ]
 }
 
-const particleSourcesStep : FESTIMStep = {
+const particleSourcesStep: FESTIMStep = {
   title: "7. Particle Sources",
   settings: [
     {
@@ -226,7 +270,7 @@ const particleSourcesStep : FESTIMStep = {
   ]
 }
 
-const temperatureStep : FESTIMStep = {
+const temperatureStep: FESTIMStep = {
   title: "8. Temperature",
   settings: [
     {
@@ -236,7 +280,7 @@ const temperatureStep : FESTIMStep = {
   ]
 }
 
-const settingsStep : FESTIMStep = {
+const settingsStep: FESTIMStep = {
   title: "9. Settings",
   settings: [
     {
@@ -262,7 +306,7 @@ const settingsStep : FESTIMStep = {
   ]
 }
 
-const exportsStep : FESTIMStep = {
+const exportsStep: FESTIMStep = {
   title: "10. Exports",
   settings: [
     {
@@ -291,7 +335,7 @@ const exportsStep : FESTIMStep = {
   ]
 }
 
-const runStep : FESTIMStep = {
+const runStep: FESTIMStep = {
   title: "11. Run",
   settings: [
     {

@@ -35,24 +35,6 @@ export default function Home() {
     setPythonCode(code)
   }
 
-  useEffect(() => {
-    if (currentSimulation) {
-      let bindings: Binding[] = []
-      for (let i = 0; i < currentSimulation.steps.length; i++) {
-        let step = currentSimulation.steps[i]
-        bindings.push({
-          index: i,
-          snippet: "",
-          values: {},
-          recipe: step.recipe ?? ""
-        })
-      }
-      console.log("Bindings: ", bindings)
-      setBindings(bindings)
-    }
-  }, [])
-
-
   const parseRecipe = (indexedBinding: Binding) => {
     let recipe = indexedBinding.recipe
     let modifiedRecipe = recipe
@@ -88,7 +70,7 @@ export default function Home() {
     return parsedTokens.join("")
   }
 
-  const updateCodeWithIndexedBinding = (indexedBinding: Binding, exclusive : boolean) => {
+  const updateCodeWithIndexedBinding = (indexedBinding: Binding, exclusive: boolean) => {
     let parsedRecipe = parseRecipe(indexedBinding)
     indexedBinding.snippet = parsedRecipe
     if (exclusive) {
@@ -103,24 +85,49 @@ export default function Home() {
   }
 
   const updateBindings = (binding: string, index: number, value: any) => {
-    let indexedBinding = bindings.filter(binding => binding.index == index)[0]
+    let indexedBinding = bindings[index]
     console.log("Binding Found: ", indexedBinding)
     indexedBinding.values[binding] = value
     if (indexedBinding.recipe) {
       updateCodeWithIndexedBinding(indexedBinding, snippetOnly)
     }
     console.log("Binding: ", indexedBinding)
-    let updatedBindings = [...bindings.filter(b => b.index != index), indexedBinding]
+    let updatedBindings = bindings
+    updatedBindings[index] = indexedBinding
     setBindings(updatedBindings)
   }
-  
+
+
+  useEffect(() => {
+    if (currentSimulation) {
+      let bindings: Binding[] = []
+      for (let i = 0; i < currentSimulation.steps.length; i++) {
+        let step = currentSimulation.steps[i]
+        bindings.push({
+          index: i,
+          snippet: "",
+          values: {},
+          recipe: step.recipe ?? ""
+        })
+      }
+      console.log("Bindings: ", bindings)
+      setBindings(bindings)
+    }
+  }, [])
+
+  useEffect(() => {
+    let indexedBinding = bindings[currentIndex]
+    if (indexedBinding) {
+      updateCodeWithIndexedBinding(bindings[currentIndex], snippetOnly)
+    }
+  }, [currentIndex])
   return (
     <div className="h-screen bg-primarybg px-16 py-8">
       <main className="relative w-full h-full overflow-y-clip mx-auto flex flex-row gap-4">
         <div className="w-1/2 h-full flex flex-col flex-1 relative">
           <PythonCodeEditor snippetOnly={snippetOnly} setSnippetOnly={(value: boolean) => {
             setSnippetOnly(value)
-            let indexedBinding = bindings.filter(binding => binding.index == currentIndex)[0]
+            let indexedBinding = bindings[currentIndex]
             updateCodeWithIndexedBinding(indexedBinding, value)
           }} mode={mode} pythonCode={pythonCode} updatePythonCode={updatePythonCode} args={args} updateArgs={updateArgs} />
         </div>

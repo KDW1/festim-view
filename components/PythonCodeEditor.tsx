@@ -163,7 +163,8 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
                     defaultLanguage="python"
                     value={pythonCode}
                     options={{
-                        readOnly: mode == "festim"
+                        readOnly: mode == "festim",
+                        wordWrap: "on"
                     }}
                     // TODO: Fix the onChange error where if you select and delete code it doesnt deleteW
                     onChange={(val: string | undefined) => {

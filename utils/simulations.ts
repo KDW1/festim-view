@@ -74,17 +74,17 @@ export const customClasses: ClassDictionary = {
       type: "number"
     },
     {
-      title: "K_S",
+      title: "K_S_0",
       description: "the pre-exponential factor of the solubility coefficient (H/m3/Pa0.5)",
-      name: "K_S",
+      name: "K_S_0",
       type: "number"
     },
     {
-      title: "K_S_0",
+      title: "E_K_S",
       description: "the activation energy of the solubility coeficient (eV)",
-      name: "K_S_0",
+      name: "E_K_S",
       type: "number"
-    }
+    },
   ]
 }
 
@@ -176,8 +176,7 @@ cell_type = dolfinx.mesh.CellType.{cell_type}
 {dolfinx_mesh_variable} = dolfinx.mesh.create_rectangle(
     MPI.COMM_WORLD, [lower_left, upper_right], [nx, ny], cell_type=cell_type
 )
-problem.mesh = F.Mesh({dolfinx_mesh_variable}, coordinate_system=coordinate_system)
-`
+problem.mesh = F.Mesh({dolfinx_mesh_variable}, coordinate_system=coordinate_system)`
 }
 
 const materialsStep: FESTIMStep = {
@@ -189,7 +188,8 @@ const materialsStep: FESTIMStep = {
       list: true,
     }
   ],
-  recipe: `{material.variable} = F.Material(name="{material.name}", D_0={material.D_0}, E_D={material.E_D}, K_S_0={material.K_S_0}, E_K_S={material.E_K_S})`
+  recipe: `# 3. Create materials
+{material.variable} = F.Material(name="{material.name}", D_0={material.D_0}, E_D={material.E_D}, K_S_0={material.K_S_0}, E_K_S={material.E_K_S})`
 }
 
 const domainsStep: FESTIMStep = {
@@ -223,7 +223,7 @@ const speciesStep: FESTIMStep = {
     {
       title: "Species",
       type: "species",
-      list: true
+      list: false
     }
   ]
 }

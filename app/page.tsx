@@ -41,9 +41,9 @@ export default function Home() {
     modifiedRecipe = recipe.replaceAll("{", "--{--").replaceAll("}", "--}--")
     let tokens = modifiedRecipe.split("--")
 
-    console.log("Indexed Binding: ", indexedBinding)
-    console.log(`Original: ${recipe}\nModified: ${modifiedRecipe}`)
-    console.log("Tokens: ", tokens)
+    // console.log("Indexed Binding: ", indexedBinding)
+    // console.log(`Original: ${recipe}\nModified: ${modifiedRecipe}`)
+    // console.log("Tokens: ", tokens)
 
     const parse = (tokens: string[], start: number = 0) => {
       let out: string[] = []
@@ -54,7 +54,7 @@ export default function Home() {
           // let [followingTokens, nextIndex] = parse(tokens, currentIndex + 1) as [string[], number]
           currentIndex += 1 // Set to variable index
           let variableName = tokens[currentIndex]
-          let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName] != "") 
+          let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName] != "")
           let value = valueExists ? indexedBinding.values[variableName] : `{${variableName}}`
           out.push(value)
           currentIndex += 2 // Skip over the closing }
@@ -63,19 +63,19 @@ export default function Home() {
           currentIndex += 1
         }
       }
-      console.log("Out: ", out)
+      // console.log("Out: ", out)
       return [out, currentIndex]
     }
 
     let [parsedTokens, next_index] = parse(tokens, 0) as [string[], number]
-    console.log("Parsed Recipe: ", parsedTokens.join(""))
+    // console.log("Parsed Recipe: ", parsedTokens.join(""))
     return parsedTokens.join("")
   }
 
   const updateCodeWithIndexedBinding = (indexedBinding: Binding, exclusive: boolean) => {
     let parsedRecipe = parseRecipe(indexedBinding)
     indexedBinding.snippet = parsedRecipe
-    console.log("Parsed Snippet is: ", parsedRecipe)
+    // console.log("Parsed Snippet is: ", parsedRecipe)
     if (exclusive) {
       setPythonCode(parsedRecipe)
     } else {
@@ -89,12 +89,12 @@ export default function Home() {
 
   const updateBindings = (binding: string, value: any) => {
     let indexedBinding = bindings[currentIndex]
-    console.log("Binding Found: ", indexedBinding)
+    // console.log("Binding Found: ", indexedBinding)
     indexedBinding.values[binding] = value
     if (indexedBinding.recipe) {
       updateCodeWithIndexedBinding(indexedBinding, snippetOnly)
     }
-    console.log("Binding: ", indexedBinding)
+    // console.log("Binding: ", indexedBinding)
     let updatedBindings = bindings
     updatedBindings[currentIndex] = indexedBinding
     setBindings(updatedBindings)
@@ -122,7 +122,7 @@ export default function Home() {
           recipe: step.recipe ?? ""
         })
       }
-      console.log("Bindings: ", bindings)
+      // console.log("Bindings: ", bindings)
       setBindings(bindings)
     }
   }, [])

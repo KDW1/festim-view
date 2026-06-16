@@ -54,7 +54,9 @@ export default function Home() {
           // let [followingTokens, nextIndex] = parse(tokens, currentIndex + 1) as [string[], number]
           currentIndex += 1 // Set to variable index
           let variableName = tokens[currentIndex]
-          out.push(indexedBinding.values[variableName])
+          let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName] != "") 
+          let value = valueExists ? indexedBinding.values[variableName] : `{${variableName}}`
+          out.push(value)
           currentIndex += 2 // Skip over the closing }
         } else {
           out.push(token)
@@ -73,6 +75,7 @@ export default function Home() {
   const updateCodeWithIndexedBinding = (indexedBinding: Binding, exclusive: boolean) => {
     let parsedRecipe = parseRecipe(indexedBinding)
     indexedBinding.snippet = parsedRecipe
+    console.log("Parsed Snippet is: ", parsedRecipe)
     if (exclusive) {
       setPythonCode(parsedRecipe)
     } else {
@@ -102,14 +105,14 @@ export default function Home() {
     if (currentSimulation) {
       let bindings: Binding[] = []
       for (let i = 0; i < currentSimulation.steps.length; i++) {
-        let step : FESTIMStep = currentSimulation.steps[i]
-        let values : { [key: string] : any} = {}
-        for(let setting  of step.settings) {
+        let step: FESTIMStep = currentSimulation.steps[i]
+        let values: { [key: string]: any } = {}
+        for (let setting of step.settings) {
           let binding = setting.name ?? setting.title
-          if(setting.defaultValue) {
+          if (setting.defaultValue) {
             values[binding] = setting.defaultValue
           } else {
-            values[binding] = (setting.type in customClasses) ? {} : ""
+            values[binding] = ""
           }
         }
         bindings.push({
@@ -125,11 +128,14 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    let indexedBinding = bindings[currentIndex]
-    if (indexedBinding) {
-      updateCodeWithIndexedBinding(bindings[currentIndex], snippetOnly)
+    if (mode == "festim") {
+      console.log("Updating Code with Indexed Binding")
+      let indexedBinding = bindings[currentIndex]
+      if (indexedBinding) {
+        updateCodeWithIndexedBinding(bindings[currentIndex], snippetOnly)
+      }
     }
-  }, [currentIndex])
+  }, [currentIndex, mode])
   return (
     <div className="h-screen bg-primarybg px-16 py-8">
       <main className="relative w-full h-full overflow-y-clip mx-auto flex flex-row gap-4">

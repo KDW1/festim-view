@@ -15,7 +15,13 @@ const getBindingName = (setting: FESTIMSetting) => {
 }
     
 function InputList({ setting, bindings, updateBindings, currentIndex }: { setting: FESTIMSetting, bindings: Binding[], updateBindings: Function, currentIndex: number }) {
-    const [indices, setIndices] = useState([0])
+    let arrayLength = bindings[currentIndex].values[setting.name].length
+
+    const [indices, setIndices] = useState([...Array(arrayLength).keys()])
+
+    // This makes an index for every existing element in our array of values
+    // such that if voluems is a list, we have an index corresponding to each
+    // (Ideally that is...) :D
 
     
     const correspondingField = (classSetting: FESTIMSetting, index:number, prefix: string = "", suffix: string = "") => {
@@ -139,7 +145,6 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
         let indexedBinding = bindings[currentIndex]
 
         const getBindingOfSetting = (setting: FESTIMSetting) => {
-            console.log("Indexed Binding: ", indexedBinding)
             return indexedBinding.values[prefix + getBindingName(setting) + suffix]
         }
         const eventHandler = (e: ChangeEvent<any, any>, setting: FESTIMSetting) => {

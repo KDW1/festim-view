@@ -62,8 +62,9 @@ export default function Home() {
     let recipe = indexedBinding.recipe
     let modifiedRecipe = recipe
     if(!recipe) return ""
+    
     // Special character for variables
-    modifiedRecipe = recipe.replaceAll("{", "--{--").replaceAll("}", "--}--")
+    modifiedRecipe = recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--")
 
     // Special character for lists
     modifiedRecipe = modifiedRecipe.replaceAll("$", "--$--")
@@ -76,7 +77,7 @@ export default function Home() {
       let currentIndex = start
       while (currentIndex < tokens.length) {
         let token = tokens[currentIndex]
-        if (token == "{") {
+        if (token == "{*") {
           // We have "{" + variableName + "}"
           currentIndex += 1 // Set to variable index
           let variableName = tokens[currentIndex]
@@ -110,6 +111,7 @@ export default function Home() {
           console.log("With generic expression: ", expression.join(""))
 
           let listExpressions = []
+          console.log("Tokens: ", tokens)
           for(let binding of arrayBinding) {
             if(Object.keys(binding).length == 0) continue
             let parsedExpression = parseRecipe({values: binding, recipe: expression.join("")})
@@ -117,7 +119,7 @@ export default function Home() {
             listExpressions.push(parsedExpression)
           }
 
-          out.push(listExpressions.join("\n"))
+          out = out.concat(listExpressions)
           currentIndex += closingIndex + 2 // Skip the closing }
           // Binding[]
         } else {

@@ -87,8 +87,87 @@ export const customClasses: ClassDictionary = {
       name: "E_K_S",
       type: "number"
     },
+  ],
+  "volume": [
+    {
+      title: "Variable",
+      name: "variable",
+      description: "variable name",
+      type: "string"
+    },
+    {
+      title: "ID",
+      name: "id",
+      description: "the id of the volume subdomain",
+      type: "number"
+    },
+    {
+      title: "Material Variable",
+      name: "material",
+      description: "the material assigned to the subdomain",
+      type: "string"
+    },
+    {
+      title: "Locator Expression",
+      name: "locator",
+      description: "locator function",
+      type: "string"
+    }
+  ],
+  "surface": [
+    {
+      title: "Variable",
+      description: "variable name",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "ID",
+      description: "the id of the surface subdomain",
+      type: "string",
+      name: "id"
+    },
+    {
+      title: "Locator Expression",
+      description: "a callable function that locates the boundary facets of the subdomain",
+      type: "string",
+      name: "locator"
+    },
+    {
+      title: "Linked Volume Variable",
+      type: "string",
+      name: "linked_volume_variable"
+    }
+  ],
+  "interface": [
+    {
+      title: "Variable",
+      name: "variable",
+      type: "string",
+      description: "variable_name"
+    },
+    {
+      title: "ID",
+      name: "id",
+      type: "number",
+      description: "tag of the interface subdomain in the parent mesh tags."
+    },
+    {
+      title: "Subdomains",
+      name: "subdomains",
+      type: "string",
+      description: "the two subdomains sharing this interface, (comma separated values)"
+    },
+    {
+      title: "Penalty Term",
+      name: "penalty_term",
+      type: "number",
+      description: "penalty parameter for the interface formulation"
+    }
   ]
 }
+
+// How do we make it into code?
 
 const listStep : FESTIMStep = {
   title: "List Example",
@@ -132,8 +211,9 @@ const problemStep: FESTIMStep = {
       ]
     }
   ],
-  recipe: "#1 Create empty problem\n{problem_variable}=F.{problem_type}()"
+  recipe: "#1 Create empty problem\n{*problem_variable*}=F.{*problem_type*}()"
 }
+
 const meshStep: FESTIMStep = {
   title: "2. Mesh",
   settings: [
@@ -189,19 +269,19 @@ const meshStep: FESTIMStep = {
   ],
   recipe: `# 2. Create mesh
 # here we create a 2D rectangular mesh.
-nx = {nx}
-ny = {ny}
+nx = {*nx*}
+ny = {*ny*}
 
-coordinate_system = "{coordinate_system}"
+coordinate_system = "{*coordinate_system*}"
 
-lower_left = np.array([{xmin}, {ymin}])
-upper_right = np.array([{xmax}, {ymax}])
-cell_type = dolfinx.mesh.CellType.{cell_type}
+lower_left = np.array([{*xmin*}, {*ymin*}])
+upper_right = np.array([{*xmax*}, {*ymax*}])
+cell_type = dolfinx.mesh.CellType.{*cell_type*}
 
-{dolfinx_mesh_variable} = dolfinx.mesh.create_rectangle(
+{*dolfinx_mesh_variable*} = dolfinx.mesh.create_rectangle(
     MPI.COMM_WORLD, [lower_left, upper_right], [nx, ny], cell_type=cell_type
 )
-problem.mesh = F.Mesh({dolfinx_mesh_variable}, coordinate_system=coordinate_system)`
+problem.mesh = F.Mesh({*dolfinx_mesh_variable*}, coordinate_system=coordinate_system)`
 }
 
 const materialsStep: FESTIMStep = {
@@ -212,37 +292,58 @@ const materialsStep: FESTIMStep = {
       name: "materials",
       type: "material",
       itemName: "material",
-      list: false,
+      list: true,
     }
   ],
   recipe: `# 3. Create materials
-{material.variable} = F.Material(name="{material.name}", D_0={material.D_0}, E_D={material.E_D}, K_S_0={material.K_S_0}, E_K_S={material.E_K_S})
-$materials--{material.variable} = F.Material(name="{material.name}", D_0={material.D_0}, E_D={material.E_D}, K_S_0={material.K_S_0}, E_K_S={material.E_K_S})$`
+$materials--{*material.variable*} = F.Material(name="{*material.name*}", D_0={*material.D_0*}, E_D={*material.E_D*}, K_S_0={*material.K_S_0*}, E_K_S={*material.E_K_S*})$`
 }
 
 const domainsStep: FESTIMStep = {
   title: "4. Domains",
   settings: [
     {
-      title: "epsilon helper variable",
-      type: "number"
+      title: "epsilon_helper_variable",
+      type: "number",
     },
     {
       title: "Volume Subdomains",
       type: "volume",
+      name:"volumes",
+      itemName: "volume",
       list: true
     },
     {
       title: "Surface Subdomains",
       type: "surface",
+      name: "surfaces",
+      itemName: "surface",
       list: true
     },
     {
       title: "Interfaces",
       type: "interface",
+      name: "interfaces",
+      itemName: "interface",
       list: true
     }
-  ]
+  ],
+  recipe: `# 4. Create domains
+eps = {*epsilon_helper_variable*}
+
+$volumes--{*volume.variable*}=F.VolumeSubdomain(id={*volume.id*}, material={*volume.material*}, locator={*volume.locator*})\n$
+
+$surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})\n$
+
+problem.subdomains = [$volumes--{*volume.variable*},$$surfaces--{*surface.variable*}$]
+
+problem.surface_to_volume = {
+$surfaces--   {*surface.variable*} : {*surface.linked_volume_variable*}\n$
+}
+
+$interfaces--{*interface.variable*}=F.Interface(id={*interface.id*}, subdomains=[{*interface.subdomains*}], penalty_term={*interface.penalty_term*})\n$
+problem.interfaces = [$interfaces--{*interface.variable*},$]
+`
 }
 
 const speciesStep: FESTIMStep = {

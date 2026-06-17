@@ -127,6 +127,12 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
     useEffect(() => {
 
         if (monaco) {
+            setTheme(monaco, themeName)
+        }
+    }, [themeName]);
+
+    const setTheme = (monaco : any, themeName : string,) => {
+        
             if (themeName != "vs-light" && themeName != "vs-dark") {
                 let theme = themes[themeName]
                 console.log(theme.colors)
@@ -140,8 +146,7 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
                 if (themeName == "vs-light") setBackgroundColor("#fff")
                 monaco.editor.setTheme(themeName)
             }
-        }
-    }, [themeName]);
+    }
 
     return (
         <div className="w-full flex flex-1 container">

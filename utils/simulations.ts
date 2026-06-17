@@ -212,10 +212,11 @@ const materialsStep: FESTIMStep = {
       name: "materials",
       type: "material",
       itemName: "material",
-      list: true,
+      list: false,
     }
   ],
   recipe: `# 3. Create materials
+{material.variable} = F.Material(name="{material.name}", D_0={material.D_0}, E_D={material.E_D}, K_S_0={material.K_S_0}, E_K_S={material.E_K_S})
 $materials--{material.variable} = F.Material(name="{material.name}", D_0={material.D_0}, E_D={material.E_D}, K_S_0={material.K_S_0}, E_K_S={material.E_K_S})$`
 }
 

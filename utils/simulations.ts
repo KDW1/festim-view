@@ -88,6 +88,18 @@ export const customClasses: ClassDictionary = {
   ]
 }
 
+const listStep : FESTIMStep = {
+  title: "List Example",
+  description: "Testing how to make lists",
+  settings: [
+    {
+      title: "Integers",
+      type: "number",
+      list: true
+    }
+  ]
+}
+
 const problemStep: FESTIMStep = {
   title: "1. Problem",
   description: "Create the root FESTIM problem object.",
@@ -346,6 +358,10 @@ const runStep: FESTIMStep = {
       description: "Proceed to run the simulation",
     }
   ]
+}
+export const listTesting : FESTIMSim = {
+  title: "List Testing",
+  steps: [listStep]
 }
 
 export const presetSimulations: FESTIMSim[] = [

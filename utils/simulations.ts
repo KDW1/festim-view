@@ -338,7 +338,7 @@ $surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*
 problem.subdomains = [$volumes--{*volume.variable*}, $$surfaces--{*surface.variable*}, $]
 
 problem.surface_to_volume = {
-$surfaces--   {*surface.variable*} : {*surface.linked_volume_variable*}$
+$surfaces-- {*surface.variable*} : {*surface.linked_volume_variable*}$
 }
 
 $interfaces--{*interface.variable*}=F.Interface(id={*interface.id*}, subdomains=[{*interface.subdomains*}], penalty_term={*interface.penalty_term*})$

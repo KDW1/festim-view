@@ -77,7 +77,7 @@ export default function Home() {
       while (currentIndex < tokens.length) {
         let token = tokens[currentIndex]
         if (token == "{*") {
-          // We have "{" + variableName + "}"
+          // We have "{*" + variableName + "*}"
           currentIndex += 1 // Set to variable index
           let variableName = tokens[currentIndex]
           let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName] != "")
@@ -103,7 +103,7 @@ export default function Home() {
             out.push("$")
             out.push(arrayName)
             out.push("--")
-            out.push(tokens.slice(currentIndex, closingIndex).join(""))
+            out.push(tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}"))
             out.push("$")
             currentIndex = nextIndex
             continue
@@ -118,6 +118,7 @@ export default function Home() {
           
           for(let binding of arrayBinding) {
             if(Object.keys(binding).length == 0) continue
+            console.log("Binding: ", binding)
             let parsedExpression = parseRecipe({values: binding, recipe: expression.join("")})
             
             listExpressions.push(parsedExpression)
@@ -186,14 +187,14 @@ export default function Home() {
   return (
     <div className="h-screen bg-primarybg px-16 py-8">
       <main className="relative w-full h-full overflow-y-clip mx-auto flex flex-row gap-4">
-        <div className="w-1/2 h-full flex flex-col flex-1 relative">
+        <div className="w-2/3 h-full flex flex-col flex-1 relative">
           <PythonCodeEditor snippetOnly={snippetOnly} setSnippetOnly={(value: boolean) => {
             setSnippetOnly(value)
             let indexedBinding = bindings[currentIndex]
             updateCodeWithIndexedBinding(indexedBinding, value)
           }} mode={mode} pythonCode={pythonCode} updatePythonCode={updatePythonCode} args={args} updateArgs={updateArgs} />
         </div>
-        <div className="w-1/2 flex flex-col gap-4">
+        <div className="w-1/3 flex flex-col gap-4">
           <div className="flex flex-1 h-4/5">
             <TrameVisualizer mode={mode} currentIndex={currentIndex} setCurrentIndex={(index: number) => setCurrentIndex(index)} updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={currentSimulation} />
           </div>

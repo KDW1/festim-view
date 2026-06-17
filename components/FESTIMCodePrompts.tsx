@@ -136,7 +136,7 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
 
     // FESTIM API Reference for FESTIM classes
     // https://festim.readthedocs.io/en/latest/api/index.html
-    const [currentStep, setCurrentStep] = useState(simulation.steps[0])
+    const [currentStep, setCurrentStep] = useState(simulation.steps[currentIndex])
 
     const correspondingField = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos

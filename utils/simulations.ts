@@ -331,17 +331,17 @@ const domainsStep: FESTIMStep = {
   recipe: `# 4. Create domains
 eps = {*epsilon_helper_variable*}
 
-$volumes--{*volume.variable*}=F.VolumeSubdomain(id={*volume.id*}, material={*volume.material*}, locator={*volume.locator*})\n$
+$volumes--{*volume.variable*}=F.VolumeSubdomain(id={*volume.id*}, material={*volume.material*}, locator={*volume.locator*})$
 
-$surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})\n$
+$surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})$
 
-problem.subdomains = [$volumes--{*volume.variable*},$$surfaces--{*surface.variable*}$]
+problem.subdomains = [$volumes--{*volume.variable*}, $$surfaces--{*surface.variable*}, $]
 
 problem.surface_to_volume = {
-$surfaces--   {*surface.variable*} : {*surface.linked_volume_variable*}\n$
+$surfaces--   {*surface.variable*} : {*surface.linked_volume_variable*}$
 }
 
-$interfaces--{*interface.variable*}=F.Interface(id={*interface.id*}, subdomains=[{*interface.subdomains*}], penalty_term={*interface.penalty_term*})\n$
+$interfaces--{*interface.variable*}=F.Interface(id={*interface.id*}, subdomains=[{*interface.subdomains*}], penalty_term={*interface.penalty_term*})$
 problem.interfaces = [$interfaces--{*interface.variable*},$]
 `
 }

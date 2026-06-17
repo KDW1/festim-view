@@ -6,6 +6,7 @@ import Head from "next/head";
 import Image from "next/image";
 import TrameVisualizer from "@/components/TrameVisualizer";
 import { customClasses, FESTIMSetting, FESTIMSim, FESTIMStep, listTesting, presetSimulations } from "@/utils/simulations";
+import { listenerCount } from "process";
 type Dictionary = {
   [key: string]: any
 }
@@ -67,10 +68,8 @@ export default function Home() {
     modifiedRecipe = recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--")
 
     // Special character for lists
-    modifiedRecipe = modifiedRecipe.replaceAll("$", "--$--")
+    modifiedRecipe = modifiedRecipe.replaceAll("$", "--$--").replaceAll(/--{2,}/g,"--")
     let tokens = modifiedRecipe.split("--")
-
-    console.log("Tokens: ", tokens)
 
     const parse = (tokens: string[], start: number = 0) => {
       let out: string[] = []
@@ -85,42 +84,53 @@ export default function Home() {
           let value = valueExists ? indexedBinding.values[variableName] : `{${variableName}}`
           out.push(value)
           currentIndex += 2
-        } else if (token == "$") {
-          // We have "$" + binding + "*" + expression + "$"
-          currentIndex += 1
+        } else if (token.includes("$")) {
+          // TODO: Add a separator
+          // We have "$" + binding + expression + "$"
+          // x being the separator
+          currentIndex += 1 // to binding
           
           let arrayName = tokens[currentIndex]
-          console.log("Array Name: ", arrayName)
+          // console.log("Array Name: ", arrayName)
           let arrayExists = (arrayName in indexedBinding.values && indexedBinding.values[arrayName] != "")
-          let followingTokens = tokens.slice(currentIndex+1)
-          let closingIndex = followingTokens.indexOf("$")
+          currentIndex += 1 // to expression
+          let followingTokens = tokens.slice(currentIndex)
+          let closingIndex = currentIndex + followingTokens.indexOf("$")
+          let nextIndex = closingIndex+1 // Skip the closing }
           
           if(!arrayExists || indexedBinding.values[arrayName].every((obj:Object) => Object.keys(obj).length == 0)) {
             // In the case that the binding doesn't exist
             out.push("$")
             out.push(arrayName)
             out.push("--")
-            out.push(followingTokens.slice(0, closingIndex).join(""))
+            out.push(tokens.slice(currentIndex, closingIndex).join(""))
             out.push("$")
-            currentIndex += closingIndex + 2 // The extra 1 accounts for the following tokens shift
+            currentIndex = nextIndex
             continue
           }
           
           let arrayBinding = indexedBinding.values[arrayName]
-          let expression = followingTokens.slice(0,closingIndex)
-          console.log("With generic expression: ", expression.join(""))
+          let expression = tokens.slice(currentIndex,closingIndex)
+          // console.log("With generic expression: ", expression.join(""))
 
           let listExpressions = []
-          console.log("Tokens: ", tokens)
+          // console.log("Tokens: ", tokens)
+          
           for(let binding of arrayBinding) {
             if(Object.keys(binding).length == 0) continue
             let parsedExpression = parseRecipe({values: binding, recipe: expression.join("")})
-            console.log("Parsed Expression: ", parsedExpression)
+            
             listExpressions.push(parsedExpression)
+            let nextCharacter = tokens[nextIndex][0]
+            let isInline = (nextCharacter == "]" || nextCharacter == "," || nextCharacter == "$")
+            
+            if((nextIndex < tokens.length) && !isInline && arrayBinding.length > 1) {
+              listExpressions.push("\n")
+            }
           }
 
           out = out.concat(listExpressions)
-          currentIndex += closingIndex + 2 // Skip the closing }
+          currentIndex = nextIndex 
           // Binding[]
         } else {
           out.push(token)

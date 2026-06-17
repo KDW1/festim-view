@@ -73,8 +73,6 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
                         </select>
                     )
                 default:
-                    console.log("Custom Classes: ", customClasses)
-                    console.log("Class Setting Type: ", classSetting.type)
                     if (classSetting.type in customClasses) {
                         console.log(customClasses[classSetting.type])
                         return (

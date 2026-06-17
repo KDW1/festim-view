@@ -94,10 +94,18 @@ const listStep : FESTIMStep = {
   settings: [
     {
       title: "Integers",
+      name: "integers",
       type: "number",
       list: true
+    },
+    {
+      title: "Number",
+      name: "number",
+      type: "number",
+      list: false
     }
-  ]
+  ],
+  recipe: "{number}"
 }
 
 const problemStep: FESTIMStep = {

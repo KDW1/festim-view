@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import TrameVisualizer from "@/components/TrameVisualizer";
-import { customClasses, FESTIMSetting, FESTIMSim, FESTIMStep, presetSimulations } from "@/utils/simulations";
+import { customClasses, FESTIMSetting, FESTIMSim, FESTIMStep, listTesting, presetSimulations } from "@/utils/simulations";
 type Dictionary = {
   [key: string]: any
 }
@@ -15,7 +15,7 @@ export type Binding = {
   values: {
     [key: string]: any
   },
-  recipe: string
+  recipe?: string
 }
 
 export default function Home() {
@@ -24,7 +24,7 @@ export default function Home() {
   const [snippetOnly, setSnippetOnly] = useState<boolean>(true)
   const [bindings, setBindings] = useState<Binding[]>([]) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
-  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(presetSimulations[0])
+  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(listTesting)
   const updateArgs = (newArgs: ConsoleArg[]) => {
     setArgs(args => [...args, ...(newArgs.filter(el => el.message))])
   }
@@ -89,17 +89,20 @@ export default function Home() {
 
   const updateBindings = (binding: string, value: any) => {
     let indexedBinding = bindings[currentIndex]
-    // console.log("Binding Found: ", indexedBinding)
     indexedBinding.values[binding] = value
+    
     if (indexedBinding.recipe) {
       updateCodeWithIndexedBinding(indexedBinding, snippetOnly)
     }
-    // console.log("Binding: ", indexedBinding)
-    let updatedBindings = bindings
+    
+    let updatedBindings = [...bindings]
     updatedBindings[currentIndex] = indexedBinding
     setBindings(updatedBindings)
   }
 
+  useEffect(()=>{
+    console.log("Bindings were changed...")
+  }, [bindings])
 
   useEffect(() => {
     if (currentSimulation) {
@@ -112,7 +115,7 @@ export default function Home() {
           if (setting.defaultValue) {
             values[binding] = setting.defaultValue
           } else {
-            values[binding] = ""
+            values[binding] = setting.list ? [{}] : ""
           }
         }
         bindings.push({
@@ -148,7 +151,7 @@ export default function Home() {
         </div>
         <div className="w-1/2 flex flex-col gap-4">
           <div className="flex flex-1 h-4/5">
-            <TrameVisualizer currentIndex={currentIndex} setCurrentIndex={(index: number) => setCurrentIndex(index)} updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={presetSimulations[0]} />
+            <TrameVisualizer currentIndex={currentIndex} setCurrentIndex={(index: number) => setCurrentIndex(index)} updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={currentSimulation} />
           </div>
           <PythonConsole args={args} />
         </div>

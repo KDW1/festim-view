@@ -10,11 +10,109 @@ type FESTIMCodePromptsProps = {
     bindings: Binding[]
 }
 
-type FieldFunction = (
-    setting: FESTIMSetting,
-    prefix?: string,
-    suffix?: string
-) => React.ReactNode
+const getBindingName = (setting: FESTIMSetting) => {
+    return setting.name ?? setting.title
+}
+    
+function InputList({ setting, bindings, updateBindings, currentIndex }: { setting: FESTIMSetting, bindings: Binding[], updateBindings: Function, currentIndex: number }) {
+    const [indices, setIndices] = useState([0])
+
+    useEffect(() => {
+        updateBindings(getBindingName(setting), [{}])
+        console.log("Updated Bindings: ", bindings)
+    }, [])
+
+    
+    const correspondingField = (classSetting: FESTIMSetting, index:number, prefix: string = "", suffix: string = "") => {
+        // The custom binding function is for the case of classes or lists that have different functinos
+        let indexedBindings = bindings[currentIndex]
+
+        const getBindingOfSetting = (classSetting: FESTIMSetting) => {
+            let list = indexedBindings.values[getBindingName(setting)]
+            let indexedObject = list[index]
+            let binding = prefix+getBindingName(classSetting)+suffix
+            return binding in indexedObject ? indexedObject[binding] : ""
+        }
+
+        const eventHandler = (e: ChangeEvent<any, any>, classSetting: FESTIMSetting) => {
+            let list = [...indexedBindings.values[getBindingName(setting)]]
+            let indexedObject = list[index]
+            let binding = prefix+getBindingName(classSetting)+suffix
+            indexedObject[binding] = e.target.value
+            updateBindings(getBindingName(setting), list)
+        }
+
+        const fieldOfType = (type: string) => {
+            // Assign values to what they are associated with in the binding, if they are bound to
+            switch (type) {
+                case "string":
+                    return (
+                        <input value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} placeholder="abc..." type="text" className="input" />
+                    )
+                case "number":
+                    return (
+                        <input value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} placeholder="0.0" step={0.1} type="number" className="input" />
+                    )
+                case "boolean":
+                    return (
+                        <input value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
+                    )
+                case "enum":
+                    return (
+                        <select value={getBindingOfSetting(classSetting) ?? ""} onChange={(e) => eventHandler(e, classSetting)} className="select-container" name="" id="">
+                            <option value={""} className="border-blue-400 border-2" >Select a value</option>
+                            {classSetting.options && classSetting.options.map((option, i) => (
+                                <option className="border-blue-400 border-2" value={option} key={`item${classSetting.title}${currentIndex}${option}`}>{option}</option>
+                            ))
+                            }
+                        </select>
+                    )
+                default:
+                    if (classSetting.type in customClasses) {
+                        return (
+                            <div className="flex flex-col gap-y-2">
+                                {customClasses[classSetting.type].map(classSetting => (
+                                    <div key={`${classSetting.title}`} className="flex flex-col">
+                                        <p className="text-sm">
+                                            {classSetting.title}{classSetting.description && <em>, {classSetting.description}</em>}
+                                        </p>
+                                        {correspondingField(classSetting, index, `${classSetting.type}${prefix}.`, suffix)}
+                                    </div>
+                                ))}
+                            </div>)
+                    } else {
+                        return (<p className="italic text-primarybg">Working on developing that type...</p>)
+                    }
+            }
+        }
+
+        return fieldOfType(setting.type)
+    }
+
+    return (
+        <div className="flex flex-col gap-y-2">
+            <div className="flex gap-x-2">
+                <button onClick={() => {
+                    let newIndex = indices[indices.length - 1] + 1
+                    setIndices([...indices, newIndex])
+                }} className="button">
+                    Add
+                </button>
+                <button onClick={() => {
+                    setIndices(indices.slice(0, indices.length - 1))
+                }} disabled={indices.length <= 1} className="button">
+                    Remove
+                </button>
+            </div>
+            {indices.map(i => (
+                <div key={`item${i}`}>
+                    <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i}</p>
+                    {correspondingField(setting, i)}
+                </div>
+            ))}
+        </div>
+    )
+}
 
 export default function FESTIMCodePrompts({ simulation, updateBindings, bindings, currentIndex, setCurrentIndex }: FESTIMCodePromptsProps) {
     // This will be a dictionary of bindings corresponding to each step!
@@ -23,51 +121,14 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
     // https://festim.readthedocs.io/en/latest/api/index.html
     const [currentStep, setCurrentStep] = useState(simulation.steps[0])
 
-
-    function InputList({ setting, bindings, correspondingField }: { setting: FESTIMSetting, bindings: Binding[], correspondingField: FieldFunction }) {
-        const [indices, setIndices] = useState([1])
-        // useEffect(() => {
-        //     console.log("Binding Changed to: ", bindings)
-        // }, [bindings])
-        return (
-            <div className="flex flex-col gap-y-2">
-                <div className="flex gap-x-2">
-                    <button onClick={() => {
-                        let newIndex = indices[indices.length - 1] + 1
-                        setIndices([...indices, newIndex])
-                    }} className="button">
-                        Add
-                    </button>
-                    <button onClick={() => {
-                        setIndices(indices.slice(0, indices.length - 1))
-                    }} disabled={indices.length <= 1} className="button">
-                        Remove
-                    </button>
-                </div>
-                {indices.map(i => (
-                    setting.type in customClasses ? <div key={`item${i}`}>
-                        <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i}</p>
-                        {correspondingField({ ...setting, list: false }, i.toString())}
-                    </div>
-                        : <></>
-                ))}
-            </div>
-        )
-    }
-
-    const correspondingField: FieldFunction = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
+    const correspondingField = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
         let indexedBindings = bindings[currentIndex]
-        
-        const getBindingName = (setting: FESTIMSetting) => {
-            return setting.name ?? setting.title
-        }
+
         const getBindingOfSetting = (setting: FESTIMSetting) => {
             return indexedBindings.values[prefix + getBindingName(setting) + suffix]
         }
         const eventHandler = (e: ChangeEvent<any, any>, setting: FESTIMSetting) => {
-            // console.log("Prefix is: ", prefix)
-            // console.log("Suffix is: ", suffix)
             updateBindings(prefix + getBindingName(setting) + suffix, e.target.value)
         }
 
@@ -132,7 +193,7 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                             {setting.description && <p className="text-sm italic">
                                 {setting.description}
                             </p>}
-                            {setting.list ? <InputList bindings={bindings} setting={setting} correspondingField={correspondingField}></InputList> : correspondingField(setting)}
+                            {setting.list ? <InputList currentIndex={currentIndex} updateBindings={updateBindings} bindings={bindings} setting={setting}></InputList> : correspondingField(setting)}
                         </div>
                     ))
                 }

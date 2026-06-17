@@ -108,11 +108,16 @@ export default function Home() {
           let arrayBinding = indexedBinding.values[arrayName]
           let expression = followingTokens.slice(0,closingIndex)
           console.log("With generic expression: ", expression.join(""))
+
+          let listExpressions = []
           for(let binding of arrayBinding) {
+            if(Object.keys(binding).length == 0) continue
             let parsedExpression = parseRecipe({values: binding, recipe: expression.join("")})
             console.log("Parsed Expression: ", parsedExpression)
-            out.push(parsedExpression)
+            listExpressions.push(parsedExpression)
           }
+          
+          out.push(listExpressions.join("\n"))
           currentIndex += closingIndex + 2 // Skip the closing }
           // Binding[]
         } else {

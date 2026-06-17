@@ -95,16 +95,19 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
                     setIndices([...indices, newIndex])
                     
                     let indexedBinding = bindings[currentIndex]
-                    let list = indexedBinding.values[getBindingName(setting)]
-
+                    let list = indexedBinding.values[setting.name]
                     // Making that new space for the new array item
-                    list[newIndex] = {}
-                    updateBindings(getBindingName(setting), list)
+                    updateBindings(setting.name, [...list, {}])
                 }} className="button">
                     Add
                 </button>
                 <button onClick={() => {
                     setIndices(indices.slice(0, indices.length - 1))
+
+                    let indexedBinding = bindings[currentIndex]
+                    let list = indexedBinding.values[setting.name]
+
+                    updateBindings(setting.name, list.slice(0,list.length-1))
                 }} disabled={indices.length <= 1} className="button">
                     Remove
                 </button>

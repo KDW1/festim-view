@@ -20,9 +20,9 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
     
     const correspondingField = (classSetting: FESTIMSetting, index:number, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
+        let indexedBinding = bindings[currentIndex]
 
         const getBindingOfSetting = (classSetting: FESTIMSetting) => {
-            let indexedBinding = bindings[currentIndex]
             let list = indexedBinding.values[setting.name]
             let indexedObject = list[index]
             let binding = prefix+getBindingName(classSetting)+suffix
@@ -30,7 +30,6 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
         }
 
         const eventHandler = (e: ChangeEvent<any, any>, classSetting: FESTIMSetting) => {
-            let indexedBinding = bindings[currentIndex]
             let list = [...indexedBinding.values[setting.name]]
             let indexedObject = list[index]
             let binding = prefix+getBindingName(classSetting)+suffix
@@ -130,9 +129,9 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
 
     const correspondingField = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
+        let indexedBinding = bindings[currentIndex]
 
         const getBindingOfSetting = (setting: FESTIMSetting) => {
-            let indexedBinding = bindings[currentIndex]
             console.log("Indexed Binding: ", indexedBinding)
             return indexedBinding.values[prefix + getBindingName(setting) + suffix]
         }

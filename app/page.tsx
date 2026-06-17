@@ -46,7 +46,7 @@ export default function Home() {
     }
   }
 
-  const [bindings, setBindings] = useState<Binding[]>(initializedBindings) // Bindings for selected simulations
+  const [bindings, setBindings] = useState<Binding[]>(initializedBindings ?? []) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
   const updateArgs = (newArgs: ConsoleArg[]) => {
     setArgs(args => [...args, ...(newArgs.filter(el => el.message))])
@@ -58,15 +58,18 @@ export default function Home() {
     setPythonCode(code)
   }
 
-  const parseRecipe = (indexedBinding: Binding) => {
+  const parseRecipe = (indexedBinding: { values: {[key: string]: any}, recipe: string }) => {
     let recipe = indexedBinding.recipe
     let modifiedRecipe = recipe
+    if(!recipe) return ""
+    // Special character for variables
     modifiedRecipe = recipe.replaceAll("{", "--{--").replaceAll("}", "--}--")
+
+    // Special character for lists
+    modifiedRecipe = modifiedRecipe.replaceAll("$", "--$--")
     let tokens = modifiedRecipe.split("--")
 
-    // console.log("Indexed Binding: ", indexedBinding)
-    // console.log(`Original: ${recipe}\nModified: ${modifiedRecipe}`)
-    // console.log("Tokens: ", tokens)
+    console.log("Tokens: ", tokens)
 
     const parse = (tokens: string[], start: number = 0) => {
       let out: string[] = []
@@ -74,13 +77,44 @@ export default function Home() {
       while (currentIndex < tokens.length) {
         let token = tokens[currentIndex]
         if (token == "{") {
-          // let [followingTokens, nextIndex] = parse(tokens, currentIndex + 1) as [string[], number]
+          // We have "{" + variableName + "}"
           currentIndex += 1 // Set to variable index
           let variableName = tokens[currentIndex]
           let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName] != "")
           let value = valueExists ? indexedBinding.values[variableName] : `{${variableName}}`
           out.push(value)
-          currentIndex += 2 // Skip over the closing }
+          currentIndex += 2
+        } else if (token == "$") {
+          // We have "$" + binding + "*" + expression + "$"
+          currentIndex += 1
+          
+          let arrayName = tokens[currentIndex]
+          console.log("Array Name: ", arrayName)
+          let arrayExists = (arrayName in indexedBinding.values && indexedBinding.values[arrayName] != "")
+          let followingTokens = tokens.slice(currentIndex+1)
+          let closingIndex = followingTokens.indexOf("$")
+          
+          if(!arrayExists || indexedBinding.values[arrayName].every((obj:Object) => Object.keys(obj).length == 0)) {
+            // In the case that the binding doesn't exist
+            out.push("$")
+            out.push(arrayName)
+            out.push("*")
+            out.push(followingTokens.slice(0, closingIndex).join(""))
+            out.push("$")
+            currentIndex += closingIndex + 2 // The extra 1 accounts for the following tokens shift
+            continue
+          }
+          
+          let arrayBinding = indexedBinding.values[arrayName]
+          let expression = followingTokens.slice(0,closingIndex)
+          console.log("With generic expression: ", expression.join(""))
+          for(let binding of arrayBinding) {
+            let parsedExpression = parseRecipe({values: binding, recipe: expression.join("")})
+            console.log("Parsed Expression: ", parsedExpression)
+            out.push(parsedExpression)
+          }
+          currentIndex += closingIndex + 2 // Skip the closing }
+          // Binding[]
         } else {
           out.push(token)
           currentIndex += 1

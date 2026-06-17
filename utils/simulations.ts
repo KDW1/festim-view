@@ -109,7 +109,7 @@ const listStep : FESTIMStep = {
     }
   ],
   recipe: 
-  `$integers{integer}$
+  `$integers--value={integer}$
 number = {number}`
 }
 

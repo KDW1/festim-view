@@ -20,11 +20,34 @@ export type Binding = {
 
 export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [mode, setMode] = useState<"window" | "festim">("window")
+  const [mode, setMode] = useState<"window" | "festim">("festim")
   const [snippetOnly, setSnippetOnly] = useState<boolean>(true)
-  const [bindings, setBindings] = useState<Binding[]>([]) // Bindings for selected simulations
-  const [args, setArgs] = useState<ConsoleArg[]>([])
   const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(listTesting)
+
+  let initializedBindings = []
+  if (currentSimulation) {
+    for (let i = 0; i < currentSimulation.steps.length; i++) {
+      let step: FESTIMStep = currentSimulation.steps[i]
+      let values: { [key: string]: any } = {}
+      for (let setting of step.settings) {
+        let binding = setting.name ?? setting.title
+        if (setting.defaultValue) {
+          values[binding] = setting.defaultValue
+        } else {
+          values[binding] = setting.list ? [{}] : ""
+        }
+      }
+      initializedBindings.push({
+        index: i,
+        snippet: "",
+        values,
+        recipe: step.recipe ?? ""
+      })
+    }
+  }
+
+  const [bindings, setBindings] = useState<Binding[]>(initializedBindings) // Bindings for selected simulations
+  const [args, setArgs] = useState<ConsoleArg[]>([])
   const updateArgs = (newArgs: ConsoleArg[]) => {
     setArgs(args => [...args, ...(newArgs.filter(el => el.message))])
   }
@@ -100,36 +123,6 @@ export default function Home() {
     setBindings(updatedBindings)
   }
 
-  useEffect(()=>{
-    console.log("Bindings were changed...")
-  }, [bindings])
-
-  useEffect(() => {
-    if (currentSimulation) {
-      let bindings: Binding[] = []
-      for (let i = 0; i < currentSimulation.steps.length; i++) {
-        let step: FESTIMStep = currentSimulation.steps[i]
-        let values: { [key: string]: any } = {}
-        for (let setting of step.settings) {
-          let binding = setting.name ?? setting.title
-          if (setting.defaultValue) {
-            values[binding] = setting.defaultValue
-          } else {
-            values[binding] = setting.list ? [{}] : ""
-          }
-        }
-        bindings.push({
-          index: i,
-          snippet: "",
-          values,
-          recipe: step.recipe ?? ""
-        })
-      }
-      // console.log("Bindings: ", bindings)
-      setBindings(bindings)
-    }
-  }, [])
-
   useEffect(() => {
     if (mode == "festim") {
       console.log("Updating Code with Indexed Binding")
@@ -151,7 +144,7 @@ export default function Home() {
         </div>
         <div className="w-1/2 flex flex-col gap-4">
           <div className="flex flex-1 h-4/5">
-            <TrameVisualizer currentIndex={currentIndex} setCurrentIndex={(index: number) => setCurrentIndex(index)} updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={currentSimulation} />
+            <TrameVisualizer mode={mode} currentIndex={currentIndex} setCurrentIndex={(index: number) => setCurrentIndex(index)} updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={currentSimulation} />
           </div>
           <PythonConsole args={args} />
         </div>

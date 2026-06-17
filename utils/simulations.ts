@@ -3,6 +3,7 @@ export type FESTIMSetting = {
   type: string;
   description?: string;
   list?: boolean;
+  itemName?: string;
   options?: string[];
   name?: string;
   defaultValue?: string;
@@ -47,6 +48,7 @@ export type FESTIMSim = {
 export type ClassDictionary = {
   [key: string]: FESTIMSetting[]
 }
+
 export const customClasses: ClassDictionary = {
   "material": [
     {
@@ -95,6 +97,7 @@ const listStep : FESTIMStep = {
     {
       title: "Integers",
       name: "integers",
+      itemName: "integer",
       type: "number",
       list: true
     },
@@ -105,7 +108,9 @@ const listStep : FESTIMStep = {
       list: false
     }
   ],
-  recipe: "{number}"
+  recipe: 
+  `$integers{integer}$
+number = {number}`
 }
 
 const problemStep: FESTIMStep = {
@@ -204,6 +209,7 @@ const materialsStep: FESTIMStep = {
   settings: [
     {
       title: "Materials",
+      name: "materials",
       type: "material",
       list: true,
     }

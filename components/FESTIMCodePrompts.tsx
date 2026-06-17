@@ -11,40 +11,36 @@ type FESTIMCodePromptsProps = {
 }
 
 const getBindingName = (setting: FESTIMSetting) => {
-    return setting.name ?? setting.title
+    return setting.itemName ?? setting.name ?? setting.title
 }
     
 function InputList({ setting, bindings, updateBindings, currentIndex }: { setting: FESTIMSetting, bindings: Binding[], updateBindings: Function, currentIndex: number }) {
     const [indices, setIndices] = useState([0])
 
-    useEffect(() => {
-        updateBindings(getBindingName(setting), [{}])
-        console.log("Updated Bindings: ", bindings)
-    }, [])
-
     
     const correspondingField = (classSetting: FESTIMSetting, index:number, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
-        let indexedBindings = bindings[currentIndex]
 
         const getBindingOfSetting = (classSetting: FESTIMSetting) => {
-            let list = indexedBindings.values[getBindingName(setting)]
+            let indexedBinding = bindings[currentIndex]
+            let list = indexedBinding.values[setting.name]
             let indexedObject = list[index]
             let binding = prefix+getBindingName(classSetting)+suffix
             return binding in indexedObject ? indexedObject[binding] : ""
         }
 
         const eventHandler = (e: ChangeEvent<any, any>, classSetting: FESTIMSetting) => {
-            let list = [...indexedBindings.values[getBindingName(setting)]]
+            let indexedBinding = bindings[currentIndex]
+            let list = [...indexedBinding.values[setting.name]]
             let indexedObject = list[index]
             let binding = prefix+getBindingName(classSetting)+suffix
             indexedObject[binding] = e.target.value
             updateBindings(getBindingName(setting), list)
         }
 
-        const fieldOfType = (type: string) => {
+        const fieldOfType = (setting: string) => {
             // Assign values to what they are associated with in the binding, if they are bound to
-            switch (type) {
+            switch (setting.type) {
                 case "string":
                     return (
                         <input value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} placeholder="abc..." type="text" className="input" />
@@ -68,15 +64,18 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
                         </select>
                     )
                 default:
+                    console.log("Custom Classes: ", customClasses)
+                    console.log("Class Setting Type: ", classSetting.type)
                     if (classSetting.type in customClasses) {
+                        console.log(customClasses[classSetting.type])
                         return (
                             <div className="flex flex-col gap-y-2">
-                                {customClasses[classSetting.type].map(classSetting => (
-                                    <div key={`${classSetting.title}`} className="flex flex-col">
+                                {customClasses[classSetting.type].map(classProperty => (
+                                    <div key={`${classProperty.title}`} className="flex flex-col">
                                         <p className="text-sm">
-                                            {classSetting.title}{classSetting.description && <em>, {classSetting.description}</em>}
+                                            {classProperty.title}{classProperty.description && <em>, {classProperty.description}</em>}
                                         </p>
-                                        {correspondingField(classSetting, index, `${classSetting.type}${prefix}.`, suffix)}
+                                        {correspondingField(classProperty, index, `${setting.type}${prefix}.`, suffix)}
                                     </div>
                                 ))}
                             </div>)
@@ -86,7 +85,7 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
             }
         }
 
-        return fieldOfType(setting.type)
+        return fieldOfType(classSetting)
     }
 
     return (
@@ -95,6 +94,13 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
                 <button onClick={() => {
                     let newIndex = indices[indices.length - 1] + 1
                     setIndices([...indices, newIndex])
+                    
+                    let indexedBinding = bindings[currentIndex]
+                    let list = indexedBinding.values[getBindingName(setting)]
+
+                    // Making that new space for the new array item
+                    list[newIndex] = {}
+                    updateBindings(getBindingName(setting), list)
                 }} className="button">
                     Add
                 </button>
@@ -107,7 +113,8 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
             {indices.map(i => (
                 <div key={`item${i}`}>
                     <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i}</p>
-                    {correspondingField(setting, i)}
+                    {/* Note that here we don't have any recursive lists */}
+                    {correspondingField({...setting, list: false}, i)}
                 </div>
             ))}
         </div>
@@ -123,10 +130,11 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
 
     const correspondingField = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
-        let indexedBindings = bindings[currentIndex]
 
         const getBindingOfSetting = (setting: FESTIMSetting) => {
-            return indexedBindings.values[prefix + getBindingName(setting) + suffix]
+            let indexedBinding = bindings[currentIndex]
+            console.log("Indexed Binding: ", indexedBinding)
+            return indexedBinding.values[prefix + getBindingName(setting) + suffix]
         }
         const eventHandler = (e: ChangeEvent<any, any>, setting: FESTIMSetting) => {
             updateBindings(prefix + getBindingName(setting) + suffix, e.target.value)

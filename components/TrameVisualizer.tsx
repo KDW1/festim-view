@@ -12,6 +12,7 @@ type VisualizerProps = {
   updateBindings: Function;
   updateMode: Function;
   onCommunicatorReady: (communicator: unknown) => void;
+  mode: "festim" | "window";
   bindings: Binding[];
   currentIndex: number;
   setCurrentIndex: Function;
@@ -21,11 +22,11 @@ const iframe_id = "my_frame"
 const iframe_url = "http://localhost:8080/"
 
 export default function TrameVisualizer({
-  onCommunicatorReady, simulation, updateBindings, bindings, updateMode, currentIndex, setCurrentIndex
+  onCommunicatorReady, simulation, updateBindings, bindings, mode, updateMode, currentIndex, setCurrentIndex
 }: VisualizerProps) {
   const tabs = simulation ? ["Window", "FESTIM"] : ["Window"]
   const [resolution, setResolution] = useState("...")
-  const [currentTab, setCurrentTab] = useState("window")
+  const [currentTab, setCurrentTab] = useState(mode)
 
   let listeners: Array<(e: Event) => void> = [];
   let iframeClientCommunicator: unknown = null;

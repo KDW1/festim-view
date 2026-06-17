@@ -33,11 +33,15 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
             let list = [...indexedBinding.values[setting.name]]
             let indexedObject = list[index]
             let binding = prefix+getBindingName(classSetting)+suffix
-            indexedObject[binding] = e.target.value
+            if(e.target.value == "") {
+                delete indexedObject[binding]
+            } else {
+                indexedObject[binding] = e.target.value
+            }
             updateBindings(getBindingName(setting), list)
         }
 
-        const fieldOfType = (setting: string) => {
+        const fieldOfType = (setting: FESTIMSetting) => {
             // Assign values to what they are associated with in the binding, if they are bound to
             switch (setting.type) {
                 case "string":
@@ -114,7 +118,7 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
             </div>
             {indices.map(i => (
                 <div key={`item${i}`}>
-                    <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i}</p>
+                    <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i+1}</p>
                     {/* Note that here we don't have any recursive lists */}
                     {correspondingField({...setting, list: false}, i)}
                 </div>

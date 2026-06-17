@@ -22,7 +22,7 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [mode, setMode] = useState<"window" | "festim">("festim")
   const [snippetOnly, setSnippetOnly] = useState<boolean>(true)
-  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(listTesting)
+  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(presetSimulations[0])
 
   let initializedBindings = []
   if (currentSimulation) {
@@ -98,7 +98,7 @@ export default function Home() {
             // In the case that the binding doesn't exist
             out.push("$")
             out.push(arrayName)
-            out.push("*")
+            out.push("--")
             out.push(followingTokens.slice(0, closingIndex).join(""))
             out.push("$")
             currentIndex += closingIndex + 2 // The extra 1 accounts for the following tokens shift
@@ -116,7 +116,7 @@ export default function Home() {
             console.log("Parsed Expression: ", parsedExpression)
             listExpressions.push(parsedExpression)
           }
-          
+
           out.push(listExpressions.join("\n"))
           currentIndex += closingIndex + 2 // Skip the closing }
           // Binding[]

@@ -1,53 +1,35 @@
+// Setting in a step of a FESTIM simulation
 export type FESTIMSetting = {
   title: string;
-  type: string;
+  type: string; // "string" | "number" | "boolean" | "enum" | "..." 
   description?: string;
   list?: boolean;
-  itemName?: string;
-  options?: string[];
+  itemName?: string; // Generic name for element in list
+  options?: string[]; // Options for enum type
   name?: string;
   defaultValue?: string;
 }
 
-// TODO: 
-// 1. Add recipe for assembling Python variables
-// 2. Have some default Python code, so that even
-//    with empty fields we can have something
-// 3. Add the bindings that define how custom types,
-//    take in data
-
-// These settings cover types such as
-// diffusion constants -> number
-// variable names -> string
-// select values from a set of options -> enum
-// binary values like species mobility, transience -> boolean
-
-// Custom values like Materials, Subdomains, 
-// will be recognized as non default types 
-// and a dictionary (soon to be made) will organize
-// those data types!
-
-// However, we also need to be able to make a list of values like
-// if we have a list of boundary conditions, subdomains 
-// hence the list value
-
+// Step in a FESTIM simulation
 export type FESTIMStep = {
   title: string;
   description?: string;
   settings: FESTIMSetting[];
-  recipe?: string;
-  // The recipe will describe
-  // how the bindings should be parsed
-  // into Python code 
+  recipe?: string; // Recipe for assembling Python code
 }
+
+// FESTIM simulation, composed of multiple steps
 export type FESTIMSim = {
   title: string;
   steps: FESTIMStep[]
 }
 
+// Dictionary of FESTIM classes
+// FESTIM classes are composed of simpler data types, FESTIM settings
 export type ClassDictionary = {
   [key: string]: FESTIMSetting[]
 }
+
 
 export const customClasses: ClassDictionary = {
   "material": [
@@ -167,8 +149,6 @@ export const customClasses: ClassDictionary = {
   ]
 }
 
-// How do we make it into code?
-
 const listStep : FESTIMStep = {
   title: "List Example",
   description: "Testing how to make lists",
@@ -188,8 +168,8 @@ const listStep : FESTIMStep = {
     }
   ],
   recipe: 
-  `$integers--value={integer}$
-number = {number}`
+`$integers--value = {*integer*}$
+number = {*number*}`
 }
 
 const problemStep: FESTIMStep = {

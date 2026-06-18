@@ -46,6 +46,10 @@ export default function Home() {
       })
     }
   }
+  
+  useEffect(()=>{
+    console.log("Initialized Bindings: ", initializedBindings)
+  }, [])
 
   const [bindings, setBindings] = useState<Binding[]>(initializedBindings ?? []) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
@@ -60,10 +64,18 @@ export default function Home() {
   }
 
   const parseRecipe = (indexedBinding: { values: {[key: string]: any}, recipe: string }) => {
+    console.log("Parsing with binding: ", indexedBinding)
     let recipe = indexedBinding.recipe
     let modifiedRecipe = recipe
     if(!recipe) return ""
+
+    const tokenize = (recipe : string) => {
+      return recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--").replaceAll("$", "--$--").replaceAll(/--{2,}/g,"--").split("--")
+    }
     
+    console.log("Tokens: ", tokenize(recipe))
+
+    // Thank you 6.1010 for making us do Symbolic Algebra and LISP Parser
     // Special character for variables
     modifiedRecipe = recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--")
 
@@ -84,14 +96,15 @@ export default function Home() {
           let value = valueExists ? indexedBinding.values[variableName] : `{${variableName}}`
           out.push(value)
           currentIndex += 2
+
+          console.log(`Encountered variable form: {${variableName}}`)
         } else if (token.includes("$")) {
-          // TODO: Add a separator
           // We have "$" + binding + expression + "$"
           // x being the separator
           currentIndex += 1 // to binding
           
           let arrayName = tokens[currentIndex]
-          // console.log("Array Name: ", arrayName)
+          
           let arrayExists = (arrayName in indexedBinding.values && indexedBinding.values[arrayName] != "")
           currentIndex += 1 // to expression
           let followingTokens = tokens.slice(currentIndex)
@@ -103,23 +116,23 @@ export default function Home() {
             out.push("$")
             out.push(arrayName)
             out.push("--")
-            out.push(tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}"))
+            const expression = tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}")
+            out.push(expression)
             out.push("$")
+          console.log(`Encountered list form: $${arrayName}--${expression}$`)
             currentIndex = nextIndex
             continue
           }
           
           let arrayBinding = indexedBinding.values[arrayName]
-          let expression = tokens.slice(currentIndex,closingIndex)
-          // console.log("With generic expression: ", expression.join(""))
+          let expression = tokens.slice(currentIndex,closingIndex).join("")
 
           let listExpressions = []
-          // console.log("Tokens: ", tokens)
           
           for(let binding of arrayBinding) {
             if(Object.keys(binding).length == 0) continue
-            console.log("Binding: ", binding)
-            let parsedExpression = parseRecipe({values: binding, recipe: expression.join("")})
+            
+            let parsedExpression = parseRecipe({values: binding, recipe: expression})
             
             listExpressions.push(parsedExpression)
             let nextCharacter = tokens[nextIndex][0]
@@ -131,26 +144,26 @@ export default function Home() {
           }
 
           out = out.concat(listExpressions)
-          currentIndex = nextIndex 
-          // Binding[]
+          currentIndex = nextIndex
+
+          console.log(`Encountered list form: $${arrayName}--${expression}$`)
         } else {
           out.push(token)
           currentIndex += 1
         }
       }
-      // console.log("Out: ", out)
+      
       return [out, currentIndex]
     }
 
     let [parsedTokens, next_index] = parse(tokens, 0) as [string[], number]
-    // console.log("Parsed Recipe: ", parsedTokens.join(""))
+    console.log("Parsed Recipe: \n", parsedTokens.join(""))
     return parsedTokens.join("")
   }
 
   const updateCodeWithIndexedBinding = (indexedBinding: Binding, exclusive: boolean) => {
     let parsedRecipe = parseRecipe(indexedBinding)
     indexedBinding.snippet = parsedRecipe
-    // console.log("Parsed Snippet is: ", parsedRecipe)
     if (exclusive) {
       setPythonCode(parsedRecipe)
     } else {
@@ -177,7 +190,6 @@ export default function Home() {
 
   useEffect(() => {
     if (mode == "festim") {
-      console.log("Updating Code with Indexed Binding")
       let indexedBinding = bindings[currentIndex]
       if (indexedBinding) {
         updateCodeWithIndexedBinding(bindings[currentIndex], snippetOnly)

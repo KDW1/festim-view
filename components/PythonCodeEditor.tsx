@@ -99,7 +99,6 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.ctrlKey || e.metaKey) {
             let key: string = e.key.toLowerCase()
-            console.log("Key pressed down was: ", key)
             switch (key) {
                 case "s":
                     e.preventDefault()

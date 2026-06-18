@@ -44,7 +44,7 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
             } else {
                 indexedObject[binding] = e.target.value
             }
-            updateBindings(getBindingName(setting), list)
+            updateBindings(setting.name, list)
         }
 
         const fieldOfType = (setting: FESTIMSetting) => {
@@ -74,7 +74,6 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
                     )
                 default:
                     if (classSetting.type in customClasses) {
-                        console.log(customClasses[classSetting.type])
                         return (
                             <div className="flex flex-col gap-y-2">
                                 {customClasses[classSetting.type].map(classProperty => (

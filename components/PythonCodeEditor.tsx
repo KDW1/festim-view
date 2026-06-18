@@ -134,12 +134,10 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
         
             if (themeName != "vs-light" && themeName != "vs-dark") {
                 let theme = themes[themeName]
-                console.log(theme.colors)
                 monaco.editor.defineTheme(themeName.replaceAll(/\s+/g, ""), theme)
                 monaco.editor.setTheme(themeName.replaceAll(/\s+/g, ""))
                 let themeBackgroundColor = theme.colors["editor.background"]
                 setBackgroundColor(themeBackgroundColor)
-                console.log("Current Theme Colors: ", theme.colors)
             } else {
                 if (themeName == "vs-dark") setBackgroundColor("#000")
                 if (themeName == "vs-light") setBackgroundColor("#fff")

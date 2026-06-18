@@ -19,16 +19,14 @@ export type Binding = {
   recipe?: string
 }
 
-export default function Home() {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [mode, setMode] = useState<"window" | "festim">("festim")
-  const [snippetOnly, setSnippetOnly] = useState<boolean>(true)
-  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(presetSimulations[0])
+const defaultSimulation : FESTIMSim = presetSimulations[0]
 
+export default function Home() {
+  
   let initializedBindings = []
-  if (currentSimulation) {
-    for (let i = 0; i < currentSimulation.steps.length; i++) {
-      let step: FESTIMStep = currentSimulation.steps[i]
+  if (defaultSimulation) {
+    for (let i = 0; i < defaultSimulation.steps.length; i++) {
+      let step: FESTIMStep = defaultSimulation.steps[i]
       let values: { [key: string]: any } = {}
       for (let setting of step.settings) {
         let binding = setting.name ?? setting.title
@@ -46,11 +44,11 @@ export default function Home() {
       })
     }
   }
-  
-  useEffect(()=>{
-    console.log("Initialized Bindings: ", initializedBindings)
-  }, [])
 
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [mode, setMode] = useState<"window" | "festim">("festim")
+  const [snippetOnly, setSnippetOnly] = useState<boolean>(true)
+  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(defaultSimulation)
   const [bindings, setBindings] = useState<Binding[]>(initializedBindings ?? []) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
   const updateArgs = (newArgs: ConsoleArg[]) => {
@@ -187,6 +185,11 @@ export default function Home() {
     updatedBindings[currentIndex] = indexedBinding
     setBindings(updatedBindings)
   }
+
+  
+  useEffect(()=>{
+    console.log("Initialized Bindings: ", initializedBindings)
+  }, [])
 
   useEffect(() => {
     if (mode == "festim") {

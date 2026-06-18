@@ -41,8 +41,8 @@ Inspired by 6.1010's "SymbolicAlgebra", "LISP" parsers!
     - Otherwise, we pass the token as it is
 ### FESTIM Code Prompts State Management
 The most important states associated with the FESTIM Code Prompts component are the:
-1. **currentSimulation**, the current simulation
-2. **bindings,** an initialized set of bindings that makes code prompts work
+1. **currentSimulation**, the current simulation which is set to some `FESTIMSim`
+2. **bindings,** an initialized set of bindings that makes code prompts work by maintaining information about the values, Python recipe, and the index of the steps in the state.
     - Crawls through *currentSimulation.steps* and makes default value
 ### Code Prompt Field Generation
 Corresponding Field Generation

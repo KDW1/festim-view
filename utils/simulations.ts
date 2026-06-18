@@ -32,6 +32,29 @@ export type ClassDictionary = {
 
 
 export const customClasses: ClassDictionary = {
+  "person": [
+    {
+      title: "Name",
+      type: "string",
+      name: "name",
+    },
+    {
+      title: "Age",
+      type: "number",
+      name: "age"
+    },
+    {
+      title: "Companion",
+      type: "enum",
+      name: "companion",
+      options: [
+        "Radioactive Spider (Earth-42)",
+        "Momo",
+        "Rocky",
+        "BB-8"
+      ]
+    }
+  ],
   "material": [
     {
       title: "Variable",
@@ -149,27 +172,43 @@ export const customClasses: ClassDictionary = {
   ]
 }
 
-const listStep : FESTIMStep = {
+const exampleStep : FESTIMStep = {
   title: "List Example",
   description: "Testing how to make lists",
   settings: [
     {
-      title: "Integers",
-      name: "integers",
-      itemName: "integer",
-      type: "number",
-      list: true
+      title: "Favorite Movie",
+      name: "favorite_movie",
+      type: "string",
+      list: false
     },
     {
-      title: "Number",
-      name: "number",
-      type: "number",
+      title: "Person",
+      name: "person",
+      type: "person",
       list: false
+    },
+    {
+      title: "Friends",
+      name: "friends",
+      itemName: "friend",
+      type: "person",
+      list: true
     }
   ],
   recipe: 
-`$integers--value = {*integer*}$
-number = {*number*}`
+`favorite_movie="{*favorite_movie*}"
+person={
+  "name": "{*person.name*}",
+  "age": {*person.age*},
+  "companion": "{*person.companion*}"
+}
+person.friends = [$friends--{
+  "name": "{*friend.name*}",
+  "age": {*friend.age*},
+  "companion": "{*friend.companion*}"
+},$]
+`
 }
 
 const problemStep: FESTIMStep = {
@@ -456,9 +495,12 @@ const runStep: FESTIMStep = {
     }
   ]
 }
-export const listTesting : FESTIMSim = {
-  title: "List Testing",
-  steps: [listStep]
+
+export const exampleSimulation : FESTIMSim = {
+  title: "Example Simulation",
+  steps: [
+    exampleStep
+  ]
 }
 
 export const presetSimulations: FESTIMSim[] = [

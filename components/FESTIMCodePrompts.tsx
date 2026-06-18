@@ -81,7 +81,7 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
                                         <p className="text-sm">
                                             {classProperty.title}{classProperty.description && <em>, {classProperty.description}</em>}
                                         </p>
-                                        {correspondingField(classProperty, index, `${setting.type}${prefix}.`, suffix)}
+                                        {correspondingField(classProperty, index, `${setting.itemName}${prefix}.`, suffix)}
                                     </div>
                                 ))}
                             </div>)

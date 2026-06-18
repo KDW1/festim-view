@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import TrameVisualizer from "@/components/TrameVisualizer";
-import { customClasses, FESTIMSetting, FESTIMSim, FESTIMStep, listTesting, presetSimulations } from "@/utils/simulations";
+import { customClasses, exampleSimulation, FESTIMSetting, FESTIMSim, FESTIMStep, listTesting, presetSimulations } from "@/utils/simulations";
 import { listenerCount } from "process";
 type Dictionary = {
   [key: string]: any
@@ -19,7 +19,7 @@ export type Binding = {
   recipe?: string
 }
 
-const defaultSimulation : FESTIMSim = presetSimulations[0]
+const defaultSimulation : FESTIMSim = exampleSimulation
 
 export default function Home() {
   

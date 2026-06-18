@@ -169,12 +169,117 @@ export const customClasses: ClassDictionary = {
       type: "number",
       description: "penalty parameter for the interface formulation"
     }
+  ],
+  "species": [
+    {
+      title: "Variable",
+      description: "variable name",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "Name",
+      description: "a name given to the species",
+      type: "string",
+      name: "name"
+    },
+    {
+      title: "Mobile",
+      description: "whether a species is mobile or not",
+      type: "boolean",
+      name: "mobile"
+    },
+    {
+      title: "Subdomains",
+      description: "the volume subdomain where the species is (comma-separated variables)",
+      type: "string",
+      name: "subdomains"
+    }
+  ],
+  "surface_quantity": [
+    {
+      title: "Variable",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "Quantity Type",
+      type: "enum",
+      name: "quantity_type",
+      options: [
+        "Surface Flux",
+        "Total Surface",
+        "Average Surface",
+        "Minimum Surface",
+        "Maximum Surface"
+      ]
+    },
+    {
+      title: "Field Expression",
+      type: "string",
+      name: "field_expression",
+    },
+    {
+      title: "Surface Variable",
+      type: "string",
+      name: "surface_variable"
+    }
+  ],
+  "volume_quantity": [
+    {
+      title: "Variable",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "Quantity Type",
+      type: "enum",
+      name: "quantity_type",
+      options: [
+        "Total Volume",
+        "Average Volume",
+        "Maximum Volume",
+        "Minimum Volume"
+      ]
+    },
+    {
+      title: "Field Expression",
+      type: "string",
+      name: "field_expression",
+    },
+    {
+      title: "Volume Variable",
+      type: "string",
+      name: "volume_variable"
+    }
+  ],
+  "vtx_export": [
+    {
+      title: "Variable",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "Volume Subdomain Variable",
+      type: "string",
+      name: "volume_subdomain_variable"
+    },
+    {
+      title: "Filename",
+      type: "string",
+      name: "filename"
+    },
+    {
+      title: "Field Expression",
+      type: "string",
+      name: "field_expression"
+    }
   ]
 }
 
 const exampleStep : FESTIMStep = {
-  title: "List Example",
-  description: "Testing how to make lists",
+  title: "Python Recipe Example",
+  description: "Simple demonstration of how the Python recipe works",
   settings: [
     {
       title: "Favorite Movie",
@@ -203,11 +308,12 @@ person={
   "age": {*person.age*},
   "companion": "{*person.companion*}"
 }
-person.friends = [$friends--{
+person["friends"] = [$friends--{
   "name": "{*friend.name*}",
   "age": {*friend.age*},
   "companion": "{*friend.companion*}"
 },$]
+print(person)
 `
 }
 
@@ -371,9 +477,17 @@ const speciesStep: FESTIMStep = {
     {
       title: "Species",
       type: "species",
-      list: false
+      name: "specieses",
+      list: true
     }
-  ]
+  ],
+  recipe: 
+  `# 5a. Create species
+$specieses--
+{*species.variable*} = F.Species(name="{*species.name*}", mobile={*species.mobile*})
+{*species.variable*}.subdomains = [{*species.subdomains*}]$
+
+problem.species = [$specieses--{*species.variable*}$]`
 }
 
 const initialConditionsStep: FESTIMStep = {
@@ -382,6 +496,7 @@ const initialConditionsStep: FESTIMStep = {
     {
       title: "Initial Concentrations",
       type: "concentration",
+      name: "concentrations",
       list: true
     }
   ]
@@ -393,6 +508,7 @@ const reactionsStep: FESTIMStep = {
     {
       title: "Reactions",
       type: "reaction",
+      name: "reactions",
       list: true
     }
   ]
@@ -404,6 +520,7 @@ const boundaryConditionsStep: FESTIMStep = {
     {
       title: "Boundary Conditions",
       type: "boundary_condition",
+      name: "boundary_conditions",
       list: true
     }
   ]
@@ -415,6 +532,7 @@ const particleSourcesStep: FESTIMStep = {
     {
       title: "Particle Sources",
       type: "source",
+      name: "sources",
       list: true
     }
   ]
@@ -425,7 +543,8 @@ const temperatureStep: FESTIMStep = {
   settings: [
     {
       title: "Temperature (K)",
-      type: "number"
+      type: "number",
+      name: "temperature"
     }
   ]
 }
@@ -461,28 +580,55 @@ const exportsStep: FESTIMStep = {
   settings: [
     {
       title: "Field export list variable",
+      name: "field_export_list_variable",
       type: "string"
     },
     {
-      title: "Field export list variable",
+      title: "Derived export list variable",
+      name: "derived_export_list_variable",
       type: "string"
     },
     {
       title: "VTX Species Exports",
       type: "vtx_export",
+      name: "vtx_exports",
       list: true
     },
     {
       title: "Derived Quantities - Surface",
       type: "surface_quantity",
+      name: "surface_quantities",
       list: true
     },
     {
       title: "Derived Quantities - Volume",
       type: "volume_quantity",
+      name: "volume_quantities",
       list: true
     },
-  ]
+  ],
+  recipe: 
+  `$vtx_exports--{*vtx_export.variable*} = F.VTXSpeciesExport(
+  filename=f"{*vtx_export.filename*}",
+  field={*vtx_export.field_expression*},
+  subdomain={*vtx_export.volume_subdomain_variable*}
+)$
+
+{*field_export_list_variable*} = [$vtx_exports--{*vtx_export.variable*}, $]
+
+$surface_quantities--{*surface_quantity.variable*} = F.{*surface_quantity.quantity_type*}(
+  field={*surface_quantity.field_expression*},
+  surface={*surface_quantity.surface_variable*}
+)$
+$volume_quantities--{*volume_quantity.variable*} = F.{*volume_quantity.quantity_type*}(
+  field={*volume_quantity.field_expression*},
+  surface={*volume_quantity.volume_variable*}
+)$
+
+{*derived_export_list_variable*} = [$surface_quantities--{*surface_quantity.variable*}, $$volume_quantities--{*volume_quantity.variable*}, $]
+  
+problem.exports = {*field_export_list_variable*} + {*derived_export_list_variable*}
+`
 }
 
 const runStep: FESTIMStep = {

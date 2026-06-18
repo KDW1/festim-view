@@ -19,9 +19,9 @@ export type Binding = {
   recipe?: string
 }
 
-const defaultSimulation : FESTIMSim = exampleSimulation
 
 export default function Home() {
+  const defaultSimulation : FESTIMSim = presetSimulations[0]
   
   let initializedBindings = []
   if (defaultSimulation) {
@@ -90,7 +90,7 @@ export default function Home() {
           // We have "{*" + variableName + "*}"
           currentIndex += 1 // Set to variable index
           let variableName = tokens[currentIndex]
-          let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName] != "")
+          let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName].toString() != "")
           let value = valueExists ? indexedBinding.values[variableName] : `{${variableName}}`
           out.push(value)
           currentIndex += 2

@@ -25,20 +25,6 @@ The `recipe` associated with a `FESTIMStep` describes how the `FESTIMSetting`s i
 3. \$**list**--expression\$, for *list expressions* for a list in the binding
     - If I have a list of material names with a generic item name, "material".
     - Then "\$**material_names**\--{\***material**.name\*}, $" -> "vibranium, astrophage, "
-### Recipe Parser
-Generates corresponding code snippets, *can toggle showing all code or not* based on a toggled variable
-1. Tokenizer, splits based on special characters at the instance of every $,{\*,\*},--
-2. Parsing Function, crawl across the tokens by a moving index  
-Inspired by 6.1010's "SymbolicAlgebra", "LISP" parsers!
-    - Encounters *$* → list expression
-        - Finds the next token, the *arrayName*
-        - Finds the closing *$* and its closing index
-        - The content in between the *arrayName* and that closingIndex is the *expression*
-        - Accessing that array, each object in it is like an individual frame to execute the expression within the context of
-    - Encounter *{\** → variable expression
-        - Finds the next token, the *variableName*
-        - Looks up the *variableName* with the current binding
-    - Otherwise, we pass the token as it is
 ### FESTIM Code Prompts State Management
 The most important states associated with the FESTIM Code Prompts component are the:
 1. **currentSimulation**, the current simulation which is set to some `FESTIMSim`
@@ -55,6 +41,20 @@ Corresponding Field Generation
 3. Input List that correspond to *lists*
     - The difference here is that our context is **bindings[listName]**
     - Here, we search for the binding corresponding to a generic **itemName**.
+### Recipe Parser
+Generates corresponding code snippets, *can toggle showing all code or not* based on a toggled variable
+1. Tokenizer, splits based on special characters at the instance of every $,{\*,\*},--
+2. Parsing Function, crawl across the tokens by a moving index  
+Inspired by 6.1010's "SymbolicAlgebra", "LISP" parsers!
+    - Encounters *$* → list expression
+        - Finds the next token, the *arrayName*
+        - Finds the closing *$* and its closing index
+        - The content in between the *arrayName* and that closingIndex is the *expression*
+        - Accessing that array, each object in it is like an individual frame to execute the expression within the context of
+    - Encounter *{\** → variable expression
+        - Finds the next token, the *variableName*
+        - Looks up the *variableName* with the current binding
+    - Otherwise, we pass the token as it is
 ### The Python Editor
 The primary features of the Python Editor are as follows:
 - Evaluate code as an expression

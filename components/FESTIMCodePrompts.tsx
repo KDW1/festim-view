@@ -39,11 +39,19 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
             let list = [...indexedBinding.values[setting.name]]
             let indexedObject = list[index]
             let binding = prefix+getBindingName(classSetting)+suffix
-            if(e.target.value == "") {
-                delete indexedObject[binding]
+            const inputType = e.target.type
+
+            if(inputType == "checkbox") {
+                console.log("Value: ", e.target.checked)
+                indexedObject[binding] = e.target.checked
             } else {
-                indexedObject[binding] = e.target.value
+                if(e.target.value == "") {
+                    delete indexedObject[binding]
+                } else {
+                    indexedObject[binding] = e.target.value
+                }
             }
+
             updateBindings(setting.name, list)
         }
 
@@ -81,7 +89,7 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
                                         <p className="text-sm">
                                             {classProperty.title}{classProperty.description && <em>, {classProperty.description}</em>}
                                         </p>
-                                        {correspondingField(classProperty, index, `${setting.itemName}${prefix}.`, suffix)}
+                                        {correspondingField(classProperty, index, `${setting.itemName ?? setting.type}${prefix}.`, suffix)}
                                     </div>
                                 ))}
                             </div>)

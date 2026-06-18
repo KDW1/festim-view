@@ -99,7 +99,6 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.ctrlKey || e.metaKey) {
             let key: string = e.key.toLowerCase()
-            console.log("Key pressed down was: ", key)
             switch (key) {
                 case "s":
                     e.preventDefault()
@@ -127,21 +126,24 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
     useEffect(() => {
 
         if (monaco) {
+            setTheme(monaco, themeName)
+        }
+    }, [themeName]);
+
+    const setTheme = (monaco : any, themeName : string,) => {
+        
             if (themeName != "vs-light" && themeName != "vs-dark") {
                 let theme = themes[themeName]
-                console.log(theme.colors)
                 monaco.editor.defineTheme(themeName.replaceAll(/\s+/g, ""), theme)
                 monaco.editor.setTheme(themeName.replaceAll(/\s+/g, ""))
                 let themeBackgroundColor = theme.colors["editor.background"]
                 setBackgroundColor(themeBackgroundColor)
-                console.log("Current Theme Colors: ", theme.colors)
             } else {
                 if (themeName == "vs-dark") setBackgroundColor("#000")
                 if (themeName == "vs-light") setBackgroundColor("#fff")
                 monaco.editor.setTheme(themeName)
             }
-        }
-    }, [themeName]);
+    }
 
     return (
         <div className="w-full flex flex-1 container">
@@ -163,7 +165,8 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
                     defaultLanguage="python"
                     value={pythonCode}
                     options={{
-                        readOnly: mode == "festim"
+                        readOnly: mode == "festim",
+                        wordWrap: "on"
                     }}
                     // TODO: Fix the onChange error where if you select and delete code it doesnt deleteW
                     onChange={(val: string | undefined) => {

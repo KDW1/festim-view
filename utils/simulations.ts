@@ -1,53 +1,60 @@
+// Setting in a step of a FESTIM simulation
 export type FESTIMSetting = {
   title: string;
-  type: string;
+  type: string; // "string" | "number" | "boolean" | "enum" | "..." 
   description?: string;
   list?: boolean;
-  options?: string[];
+  itemName?: string; // Generic name for element in list
+  options?: string[]; // Options for enum type
   name?: string;
   defaultValue?: string;
 }
 
-// TODO: 
-// 1. Add recipe for assembling Python variables
-// 2. Have some default Python code, so that even
-//    with empty fields we can have something
-// 3. Add the bindings that define how custom types,
-//    take in data
-
-// These settings cover types such as
-// diffusion constants -> number
-// variable names -> string
-// select values from a set of options -> enum
-// binary values like species mobility, transience -> boolean
-
-// Custom values like Materials, Subdomains, 
-// will be recognized as non default types 
-// and a dictionary (soon to be made) will organize
-// those data types!
-
-// However, we also need to be able to make a list of values like
-// if we have a list of boundary conditions, subdomains 
-// hence the list value
-
+// Step in a FESTIM simulation
 export type FESTIMStep = {
   title: string;
   description?: string;
   settings: FESTIMSetting[];
-  recipe?: string;
-  // The recipe will describe
-  // how the bindings should be parsed
-  // into Python code 
+  recipe?: string; // Recipe for assembling Python code
 }
+
+// FESTIM simulation, composed of multiple steps
 export type FESTIMSim = {
   title: string;
   steps: FESTIMStep[]
 }
 
+// Dictionary of FESTIM classes
+// FESTIM classes are composed of simpler data types, FESTIM settings
 export type ClassDictionary = {
   [key: string]: FESTIMSetting[]
 }
+
+
 export const customClasses: ClassDictionary = {
+  "person": [
+    {
+      title: "Name",
+      type: "string",
+      name: "name",
+    },
+    {
+      title: "Age",
+      type: "number",
+      name: "age"
+    },
+    {
+      title: "Companion",
+      type: "enum",
+      name: "companion",
+      options: [
+        "Radioactive Spider (Earth-42)",
+        "Momo",
+        "Rocky",
+        "BB-8"
+      ]
+    }
+  ],
   "material": [
     {
       title: "Variable",
@@ -74,18 +81,134 @@ export const customClasses: ClassDictionary = {
       type: "number"
     },
     {
-      title: "K_S",
+      title: "K_S_0",
       description: "the pre-exponential factor of the solubility coefficient (H/m3/Pa0.5)",
-      name: "K_S",
+      name: "K_S_0",
       type: "number"
     },
     {
-      title: "K_S_0",
+      title: "E_K_S",
       description: "the activation energy of the solubility coeficient (eV)",
-      name: "K_S_0",
+      name: "E_K_S",
       type: "number"
+    },
+  ],
+  "volume": [
+    {
+      title: "Variable",
+      name: "variable",
+      description: "variable name",
+      type: "string"
+    },
+    {
+      title: "ID",
+      name: "id",
+      description: "the id of the volume subdomain",
+      type: "number"
+    },
+    {
+      title: "Material Variable",
+      name: "material",
+      description: "the material assigned to the subdomain",
+      type: "string"
+    },
+    {
+      title: "Locator Expression",
+      name: "locator",
+      description: "locator function",
+      type: "string"
+    }
+  ],
+  "surface": [
+    {
+      title: "Variable",
+      description: "variable name",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "ID",
+      description: "the id of the surface subdomain",
+      type: "string",
+      name: "id"
+    },
+    {
+      title: "Locator Expression",
+      description: "a callable function that locates the boundary facets of the subdomain",
+      type: "string",
+      name: "locator"
+    },
+    {
+      title: "Linked Volume Variable",
+      type: "string",
+      name: "linked_volume_variable"
+    }
+  ],
+  "interface": [
+    {
+      title: "Variable",
+      name: "variable",
+      type: "string",
+      description: "variable_name"
+    },
+    {
+      title: "ID",
+      name: "id",
+      type: "number",
+      description: "tag of the interface subdomain in the parent mesh tags."
+    },
+    {
+      title: "Subdomains",
+      name: "subdomains",
+      type: "string",
+      description: "the two subdomains sharing this interface, (comma separated values)"
+    },
+    {
+      title: "Penalty Term",
+      name: "penalty_term",
+      type: "number",
+      description: "penalty parameter for the interface formulation"
     }
   ]
+}
+
+const exampleStep : FESTIMStep = {
+  title: "List Example",
+  description: "Testing how to make lists",
+  settings: [
+    {
+      title: "Favorite Movie",
+      name: "favorite_movie",
+      type: "string",
+      list: false
+    },
+    {
+      title: "Person",
+      name: "person",
+      type: "person",
+      list: false
+    },
+    {
+      title: "Friends",
+      name: "friends",
+      itemName: "friend",
+      type: "person",
+      list: true
+    }
+  ],
+  recipe: 
+`favorite_movie="{*favorite_movie*}"
+person={
+  "name": "{*person.name*}",
+  "age": {*person.age*},
+  "companion": "{*person.companion*}"
+}
+person.friends = [$friends--{
+  "name": "{*friend.name*}",
+  "age": {*friend.age*},
+  "companion": "{*friend.companion*}"
+},$]
+`
 }
 
 const problemStep: FESTIMStep = {
@@ -107,8 +230,9 @@ const problemStep: FESTIMStep = {
       ]
     }
   ],
-  recipe: "#1 Create empty problem\n{problem_variable}=F.{problem_type}()"
+  recipe: "#1 Create empty problem\n{*problem_variable*}=F.{*problem_type*}()"
 }
+
 const meshStep: FESTIMStep = {
   title: "2. Mesh",
   settings: [
@@ -164,20 +288,19 @@ const meshStep: FESTIMStep = {
   ],
   recipe: `# 2. Create mesh
 # here we create a 2D rectangular mesh.
-nx = {nx}
-ny = {ny}
+nx = {*nx*}
+ny = {*ny*}
 
-coordinate_system = "{coordinate_system}"
+coordinate_system = "{*coordinate_system*}"
 
-lower_left = np.array([{xmin}, {ymin}])
-upper_right = np.array([{xmax}, {ymax}])
-cell_type = dolfinx.mesh.CellType.{cell_type}
+lower_left = np.array([{*xmin*}, {*ymin*}])
+upper_right = np.array([{*xmax*}, {*ymax*}])
+cell_type = dolfinx.mesh.CellType.{*cell_type*}
 
-{dolfinx_mesh_variable} = dolfinx.mesh.create_rectangle(
+{*dolfinx_mesh_variable*} = dolfinx.mesh.create_rectangle(
     MPI.COMM_WORLD, [lower_left, upper_right], [nx, ny], cell_type=cell_type
 )
-problem.mesh = F.Mesh({dolfinx_mesh_variable}, coordinate_system=coordinate_system)
-`
+problem.mesh = F.Mesh({*dolfinx_mesh_variable*}, coordinate_system=coordinate_system)`
 }
 
 const materialsStep: FESTIMStep = {
@@ -185,36 +308,61 @@ const materialsStep: FESTIMStep = {
   settings: [
     {
       title: "Materials",
+      name: "materials",
       type: "material",
+      itemName: "material",
       list: true,
     }
   ],
-  recipe: `{material.variable} = F.Material(name="{material.name}", D_0={material.D_0}, E_D={material.E_D}, K_S_0={material.K_S_0}, E_K_S={material.E_K_S})`
+  recipe: `# 3. Create materials
+$materials--{*material.variable*} = F.Material(name="{*material.name*}", D_0={*material.D_0*}, E_D={*material.E_D*}, K_S_0={*material.K_S_0*}, E_K_S={*material.E_K_S*})$`
 }
 
 const domainsStep: FESTIMStep = {
   title: "4. Domains",
   settings: [
     {
-      title: "epsilon helper variable",
-      type: "number"
+      title: "epsilon_helper_variable",
+      type: "number",
     },
     {
       title: "Volume Subdomains",
       type: "volume",
+      name:"volumes",
+      itemName: "volume",
       list: true
     },
     {
       title: "Surface Subdomains",
       type: "surface",
+      name: "surfaces",
+      itemName: "surface",
       list: true
     },
     {
       title: "Interfaces",
       type: "interface",
+      name: "interfaces",
+      itemName: "interface",
       list: true
     }
-  ]
+  ],
+  recipe: `# 4. Create domains
+eps = {*epsilon_helper_variable*}
+
+$volumes--{*volume.variable*}=F.VolumeSubdomain(id={*volume.id*}, material={*volume.material*}, locator={*volume.locator*})$
+
+$surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})$
+
+problem.subdomains = [$volumes--{*volume.variable*}, $$surfaces--{*surface.variable*}, $]
+
+problem.surface_to_volume = {
+$surfaces-- {*surface.variable*} : {*surface.linked_volume_variable*}$
+}
+
+$interfaces--{*interface.variable*}=F.Interface(id={*interface.id*}, subdomains=[{*interface.subdomains*}], penalty_term={*interface.penalty_term*})$
+problem.interfaces = [$interfaces--{*interface.variable*},$]
+`
 }
 
 const speciesStep: FESTIMStep = {
@@ -223,7 +371,7 @@ const speciesStep: FESTIMStep = {
     {
       title: "Species",
       type: "species",
-      list: true
+      list: false
     }
   ]
 }
@@ -345,6 +493,13 @@ const runStep: FESTIMStep = {
       type: "title",
       description: "Proceed to run the simulation",
     }
+  ]
+}
+
+export const exampleSimulation : FESTIMSim = {
+  title: "Example Simulation",
+  steps: [
+    exampleStep
   ]
 }
 

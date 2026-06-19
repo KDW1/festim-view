@@ -62,3 +62,10 @@ The primary features of the Python Editor are as follows:
 - View console notifications that track general notifications pertaining to information, errors, outputs, results, etc...
 - Keyboard shortcuts for toggling evaluation, running the program
 - Currently there are temporary namespaces for each evaluation and expression
+## 2. Making a FESTIM Simulation
+1. Define your FESTIMSim
+2. Define individual FESTIMStep
+3. Populate the FESTIMSetting
+    - Create custom classes in the `customClasses` dictionary
+    - Create settings that correspond to the proper inputs
+    - Create the proper recipe

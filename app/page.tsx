@@ -22,7 +22,7 @@ export type Binding = {
 
 export default function Home() {
   const defaultSimulation : FESTIMSim = presetSimulations[0]
-  
+
   let initializedBindings = []
   if (defaultSimulation) {
     for (let i = 0; i < defaultSimulation.steps.length; i++) {
@@ -48,7 +48,7 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [mode, setMode] = useState<"window" | "festim">("festim")
   const [snippetOnly, setSnippetOnly] = useState<boolean>(true)
-  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(defaultSimulation)
+  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(presetSimulations[0])
   const [bindings, setBindings] = useState<Binding[]>(initializedBindings ?? []) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
   const updateArgs = (newArgs: ConsoleArg[]) => {

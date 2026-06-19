@@ -458,7 +458,7 @@ eps = {*epsilon_helper_variable*}
 
 $volumes--{*volume.variable*}=F.VolumeSubdomain(id={*volume.id*}, material={*volume.material*}, locator={*volume.locator*})$
 
-$surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})$
+$surfacesbruh--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})$
 
 problem.subdomains = [$volumes--{*volume.variable*}, $$surfaces--{*surface.variable*}, $]
 
@@ -483,11 +483,11 @@ const speciesStep: FESTIMStep = {
   ],
   recipe: 
   `# 5a. Create species
-$specieses--
-{*species.variable*} = F.Species(name="{*species.name*}", mobile={*species.mobile*})
-{*species.variable*}.subdomains = [{*species.subdomains*}]$
+$specieses--{*species.variable*} = F.Species(name="{*species.name*}", mobile={*species.mobile*})
+{*species.variable*}.subdomains = [{*species.subdomains*}]
+$
 
-problem.species = [$specieses--{*species.variable*}$]`
+problem.species = [$specieses--{*species.variable*}, $]`
 }
 
 const initialConditionsStep: FESTIMStep = {

@@ -546,7 +546,10 @@ const temperatureStep: FESTIMStep = {
       type: "number",
       name: "temperature"
     }
-  ]
+  ],
+  recipe: `# 7. Temperature
+problem.temperature = {*temperature*}  # K
+`
 }
 
 const settingsStep: FESTIMStep = {
@@ -633,13 +636,30 @@ problem.exports = {*field_export_list_variable*} + {*derived_export_list_variabl
 
 const runStep: FESTIMStep = {
   title: "11. Run",
+  description: "Proceed to run the simulation",
   settings: [
     {
       title: "Run",
-      type: "title",
-      description: "Proceed to run the simulation",
+      type: "button"
     }
-  ]
+  ],
+  recipe: `# initialise and run the problem
+problem.initialise()
+problem.run()
+
+
+# post-processing: we can plot the results using the exports we created.
+
+fig, ax = plt.subplots()
+for export in derived_quantities:
+    ax.plot(export.t, np.abs(export.data), label=f"Flux at surface {export.surface.id}")
+
+ax.set_yscale("log")
+ax.set_xlabel("Time (s)")
+ax.set_ylabel("Flux (mol/m^2/s) (absolute value)")
+ax.legend()
+plt.show()
+`
 }
 
 export const exampleSimulation : FESTIMSim = {

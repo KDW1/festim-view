@@ -1,3 +1,5 @@
+// TODO: Need to work on some global context syntax so you can access values across steps
+
 // Setting in a step of a FESTIM simulation
 export type FESTIMSetting = {
   title: string;
@@ -200,18 +202,19 @@ export const customClasses: ClassDictionary = {
     {
       title: "Variable",
       type: "string",
-      name: "variable"
+      name: "variable",
+      description: "variable name"
     },
     {
       title: "Quantity Type",
       type: "enum",
       name: "quantity_type",
       options: [
-        "Surface Flux",
-        "Total Surface",
-        "Average Surface",
-        "Minimum Surface",
-        "Maximum Surface"
+        "SurfaceFlux",
+        "TotalSurface",
+        "AverageSurface",
+        "MinimumSurface",
+        "MaximumSurface"
       ]
     },
     {
@@ -229,17 +232,18 @@ export const customClasses: ClassDictionary = {
     {
       title: "Variable",
       type: "string",
-      name: "variable"
+      name: "variable",
+      description: "variable name"
     },
     {
       title: "Quantity Type",
       type: "enum",
       name: "quantity_type",
       options: [
-        "Total Volume",
-        "Average Volume",
-        "Maximum Volume",
-        "Minimum Volume"
+        "TotalVolume",
+        "AverageVolume",
+        "MaximumVolume",
+        "MinimumVolume"
       ]
     },
     {
@@ -257,7 +261,8 @@ export const customClasses: ClassDictionary = {
     {
       title: "Variable",
       type: "string",
-      name: "variable"
+      name: "variable",
+      description: "variable name"
     },
     {
       title: "Volume Subdomain Variable",
@@ -273,6 +278,32 @@ export const customClasses: ClassDictionary = {
       title: "Field Expression",
       type: "string",
       name: "field_expression"
+    }
+  ],
+  "concentration": [
+    {
+      title: "Variable",
+      description: "variable name",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "Species Variable",
+      description: "the species to which the condition is applied",
+      type: "string",
+      name: "species_variable"
+    },
+    {
+      title: "Value",
+      description: "the value of the initial concentration of a given species",
+      type: "number",
+      name: "value"
+    },
+    {
+      title: "Volume Variable",
+      description: "the volume subdomain where the initial condition is applied",
+      type: "string",
+      name: "volume_variable"
     }
   ]
 }
@@ -499,7 +530,14 @@ const initialConditionsStep: FESTIMStep = {
       name: "concentrations",
       list: true
     }
-  ]
+  ],
+  recipe: `# 5b. Create initial conditions
+
+# at t=0, c_empty_trap = 1 in volume 1
+$concentrations--{*concentration.variable*} = F.InitialConcentration(species={*concentration.species_variable*}, value={*concentration.value*}, volume={*concentration.volume_variable*})$
+problem.initial_conditions = [$concentrations--{*concentration.variable*}, $]
+
+# NOTE by default other ICs are set to zero`
 }
 
 const reactionsStep: FESTIMStep = {

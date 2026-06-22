@@ -1,6 +1,6 @@
 // TODO: Need to work on some global context syntax so you can access values across steps
 // TODO: Need to fix some issue with the species.variable thing 
-
+// TODO: Make a better separator system
 // Setting in a step of a FESTIM simulation
 export type FESTIMSetting = {
   title: string;
@@ -152,7 +152,7 @@ export const customClasses: ClassDictionary = {
       title: "Variable",
       name: "variable",
       type: "string",
-      description: "variable_name"
+      description: "variable name"
     },
     {
       title: "ID",
@@ -355,6 +355,59 @@ export const customClasses: ClassDictionary = {
       description: "the volume subdomain where the reaction takes place",
       type: "string",
       name: "volume_variable"
+    }
+  ],
+  // Fixed Concentration Boundary Condition
+  "fixed_bc": [
+    {
+      title: "Variable",
+      description: "variable name",
+      type: "string",
+      name: "variable",
+    },
+    {
+      title: "Subdomain",
+      description: "the surface subdomain where the boundary condition is applied",
+      type: "string",
+      name: "surface_subdomain_variable"
+    },
+    {
+      title: "Value",
+      description: "the value of the boundary condition. It can be a function of space and/or time",
+      type: "number",
+      name: "value"
+    },
+    {
+      title: "Species",
+      description: "the name of the species",
+      type: "string",
+      name: "species_variable"
+    }
+  ],
+  "source": [
+    {
+      title: "Variable",
+      description: "variable name",
+      name: "variable",
+      type: "string"
+    },
+    {
+      title: "Species",
+      description: "the species to which the source is applied",
+      name: "species_variable",
+      type: "string"
+    },
+    {
+      title: "Volume",
+      description: "the volume subdomains where the source is applied",
+      name: "volume_variable",
+      type: "string"
+    },
+    {
+      title: "Value Expression",
+      description: "the value of the source",
+      name: "value",
+      type: "string"
     }
   ]
 }
@@ -583,7 +636,6 @@ const initialConditionsStep: FESTIMStep = {
     }
   ],
   recipe: `# 5b. Create initial conditions
-
 # at t=0, c_empty_trap = 1 in volume 1
 $concentrations--{*concentration.variable*} = F.InitialConcentration(species={*concentration.species_variable*}, value={*concentration.value*}, volume={*concentration.volume_variable*})$
 problem.initial_conditions = [$concentrations--{*concentration.variable*}, $]
@@ -602,7 +654,6 @@ const reactionsStep: FESTIMStep = {
     }
   ],
   recipe: `# 5c. Create reactions
-
 # H + empty_trap <-> H_trapped
 
 $reactions--{*reaction.variable*} = F.Reaction(
@@ -623,11 +674,15 @@ const boundaryConditionsStep: FESTIMStep = {
   settings: [
     {
       title: "Boundary Conditions",
-      type: "boundary_condition",
-      name: "boundary_conditions",
+      type: "fixed_bc",
+      name: "fixed_bcs",
       list: true
     }
-  ]
+  ],
+  recipe: `# 6. Create boundary conditions
+$fixed_bcs--{*fixed_bc.variable*} = F.FixedConcentrationBC(subdomain={*fixed_bc.surface_subdomain_variable*}, value={*fixed_bc.value*}, species={*fixed_bc.species_variable*})$
+problem.boundary_conditions = [$fixed_bcs--{*fixed_bc.variable*}, $]
+`
 }
 
 const particleSourcesStep: FESTIMStep = {
@@ -639,7 +694,10 @@ const particleSourcesStep: FESTIMStep = {
       name: "sources",
       list: true
     }
-  ]
+  ],
+  recipe: `# 7. Create particle sources
+$sources--{*source.variable*} = F.ParticleSource(species={*source.species_variable*}, volume={*source.volume_variable*}, value={*source.value*})$
+problem.sources = [$sources--{*source.variable*}, $]`
 }
 
 const temperatureStep: FESTIMStep = {
@@ -651,7 +709,7 @@ const temperatureStep: FESTIMStep = {
       name: "temperature"
     }
   ],
-  recipe: `# 7. Temperature
+  recipe: `# 8. Temperature
 problem.temperature = {*temperature*}  # K
 `
 }
@@ -685,7 +743,7 @@ const settingsStep: FESTIMStep = {
       name: "final_time"
     }
   ],
-  recipe: `# 8. Settings
+  recipe: `# 9. Settings
 problem.settings = F.Settings(
     atol={*atoi*}, rtol={*rtoi*}, transient={*transient*}, stepsize={*stepsize*}, final_time={*final_time*}
 )`
@@ -724,7 +782,8 @@ const exportsStep: FESTIMStep = {
     },
   ],
   recipe: 
-  `$vtx_exports--{*vtx_export.variable*} = F.VTXSpeciesExport(
+  `# 10. Exports
+$vtx_exports--{*vtx_export.variable*} = F.VTXSpeciesExport(
   filename=f"{*vtx_export.filename*}",
   field={*vtx_export.field_expression*},
   subdomain={*vtx_export.volume_subdomain_variable*}
@@ -753,25 +812,13 @@ const runStep: FESTIMStep = {
   settings: [
     {
       title: "Run",
-      type: "button"
+      type: "run"
     }
   ],
-  recipe: `# initialise and run the problem
+  recipe: `# 10 Run
+# initialise and run the problem
 problem.initialise()
 problem.run()
-
-
-# post-processing: we can plot the results using the exports we created.
-
-fig, ax = plt.subplots()
-for export in derived_quantities:
-    ax.plot(export.t, np.abs(export.data), label=f"Flux at surface {export.surface.id}")
-
-ax.set_yscale("log")
-ax.set_xlabel("Time (s)")
-ax.set_ylabel("Flux (mol/m^2/s) (absolute value)")
-ax.legend()
-plt.show()
 `
 }
 

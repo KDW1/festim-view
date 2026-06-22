@@ -1,4 +1,5 @@
 // TODO: Need to work on some global context syntax so you can access values across steps
+// TODO: Need to fix some issue with the species.variable thing 
 
 // Setting in a step of a FESTIM simulation
 export type FESTIMSetting = {
@@ -305,6 +306,56 @@ export const customClasses: ClassDictionary = {
       type: "string",
       name: "volume_variable"
     }
+  ],
+  "reaction": [
+    {
+      title: "Variable",
+      description: "variable name",
+      type: "string",
+      name: "variable"
+    },
+    {
+      title: "Reactants",
+      description: "the reactants (comma-separated values)",
+      type: "string",
+      name: "reactants"
+    }, 
+    {
+      title: "Product",
+      description: "the product",
+      type: "string",
+      name: "product"
+    },
+    {
+      title: "k_0",
+      description: "the forward rate constant pre-exponential factor",
+      type: "number",
+      name: "k_0"
+    },
+    {
+      title: "E_k",
+      description: "the forward rate constant activation energy",
+      type: "number",
+      name: "E_k"
+    },
+    {
+      title: "p_0",
+      description: "the backward rate constant pre-exponential factor",
+      type: "number",
+      name: "p_0"
+    },
+    {
+      title: "E_p",
+      description: "the backward rate constant activation energy",
+      type: "number",
+      name: "E_p"
+    },
+    {
+      title: "Volume",
+      description: "the volume subdomain where the reaction takes place",
+      type: "string",
+      name: "volume_variable"
+    }
   ]
 }
 
@@ -549,7 +600,22 @@ const reactionsStep: FESTIMStep = {
       name: "reactions",
       list: true
     }
-  ]
+  ],
+  recipe: `# 5c. Create reactions
+
+# H + empty_trap <-> H_trapped
+
+$reactions--{*reaction.variable*} = F.Reaction(
+    reactant=[{*reaction.reactants*}],
+    product=[{*reaction.product*}],
+    k_0={*reaction.k_0*},
+    E_k={*reaction.E_k*},
+    p_0={*reaction.p_0*},
+    E_p={*reaction.E_p*},
+    volume={*reaction.volume_variable*},
+)$
+
+problem.reactions = [$reactions--{*reaction.variable*}, $]`
 }
 
 const boundaryConditionsStep: FESTIMStep = {
@@ -595,25 +661,34 @@ const settingsStep: FESTIMStep = {
   settings: [
     {
       title: "atoi",
-      type: "number"
+      type: "number",
+      name: "atoi"
     },
     {
       title: "rtoi",
-      type: "number"
+      type: "number",
+      name: "rtoi"
     },
     {
       title: "transient",
-      type: "boolean"
+      type: "boolean",
+      name: "transient"
     },
     {
       title: "stepsize",
-      type: "number"
+      type: "number",
+      name: "stepsize"
     },
     {
       title: "final_time",
-      type: "number"
+      type: "number",
+      name: "final_time"
     }
-  ]
+  ],
+  recipe: `# 8. Settings
+problem.settings = F.Settings(
+    atol={*atoi*}, rtol={*rtoi*}, transient={*transient*}, stepsize={*stepsize*}, final_time={*final_time*}
+)`
 }
 
 const exportsStep: FESTIMStep = {

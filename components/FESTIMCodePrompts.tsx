@@ -30,7 +30,9 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
 
         const getBindingOfSetting = (classSetting: FESTIMSetting) => {
             let list = indexedBinding.values[setting.name]
+            console.log("Indexed Binding: ", indexedBinding)
             let indexedObject = list[index]
+            console.log(`Indexed Object for index ${index}`, indexedObject)
             let binding = prefix+getBindingName(classSetting)+suffix
             return binding in indexedObject ? indexedObject[binding] : ""
         }

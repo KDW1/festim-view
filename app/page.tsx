@@ -92,25 +92,37 @@ export default function Home() {
       while (currentIndex < tokens.length) {
         let token = tokens[currentIndex]
         if (token == "@") {
-          // We have "@" + pageName + "{*" + variableName + "*}"
-          currentIndex += 1 // Set to page name
+          // We have "@" + pageName + expression + "@"
+          currentIndex += 1 // to page name
           let pageName = tokens[currentIndex]
           let selectedBinding : Binding = bindings.filter(b => b.name == pageName)[0]
+
+          currentIndex += 1 // to expression
+          let followingTokens = tokens.slice(currentIndex)
+          let closingIndex = currentIndex + followingTokens.indexOf("@")
+          let nextIndex = closingIndex+1 // Skip the closing @
           
-          if(selectedBinding) {
-            currentIndex += 2 // Skip to variable name
-            let variableName = tokens[currentIndex]
-            let valueExists = (variableName in selectedBinding.values && selectedBinding.values[variableName].toString() != "")
-            let value = valueExists ? selectedBinding.values[variableName] : `@${pageName}.{${variableName}}`
-            out.push(value)
-            currentIndex += 2 // Skip to next token
-            console.log(`Encountered step-accessing form: @${pageName}.{${variableName}}`)
-          } else {
-            currentIndex += 2 // Skip to variable name
-            let variableName = tokens[currentIndex]
-            out.push(`@${pageName}.{${variableName}}`)
-            currentIndex += 2 // Skip to next token
+          if(!selectedBinding) {
+            // In the case that the binding doesn't exist
+            console.log("Page doesn't exist")
+            out.push("@")
+            out.push(pageName)
+            out.push("--")
+            const expression = tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}")
+            out.push(expression)
+            out.push("@")
+            console.log(`Encountered step-accessing form: @${pageName}--${expression}@`)
+            currentIndex = nextIndex
+            continue 
           }
+
+          let expression = tokens.slice(currentIndex,closingIndex).join("")
+          let cleanExpression = expression.replaceAll("{*", "{").replaceAll("*}", "}")
+          let value = parseRecipe({values: selectedBinding.values, recipe: expression})
+          console.log("Clean Expression: ", cleanExpression)
+          out.push(value != cleanExpression ? value : `@${pageName}--${expression}@`)
+          currentIndex = nextIndex
+          console.log(`Encountered step-accessing form: @${pageName}--${expression}@`)
 
         } else if (token == "{*") {
           // We have "{*" + variableName + "*}"
@@ -143,7 +155,7 @@ export default function Home() {
             const expression = tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}")
             out.push(expression)
             out.push("$")
-          console.log(`Encountered list form: $${arrayName}--${expression}$`)
+            console.log(`Encountered list form: $${arrayName}--${expression}$`)
             currentIndex = nextIndex
             continue
           }

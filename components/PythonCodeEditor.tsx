@@ -193,6 +193,7 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
                         <p className="text-blue-400 text-sm">
                             Code Snippet Only
                         </p>
+                    <span className="font-normal text-blue-200 italic text-sm">Ctrl+E</span>
                     </div> :
                 <div className="flex gap-x-2">
                     <label className="flex items-center cursor-pointer relative">

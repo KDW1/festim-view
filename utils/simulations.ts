@@ -453,6 +453,15 @@ print(person)
 `
 }
 
+const testingPageVariablesStep : FESTIMStep = {
+  title: "Other Page Variables",
+  description: "This is a test for accessing the variables associated with other steps",
+  recipe: `problem_name = @problem--{*problem_variable*}@
+  @materials--$materials--{*material.name*}, $@
+  `,
+  settings: []
+}
+
 const problemStep: FESTIMStep = {
   title: "1. Problem",
   name: "problem",
@@ -543,11 +552,12 @@ cell_type = dolfinx.mesh.CellType.{*cell_type*}
 {*dolfinx_mesh_variable*} = dolfinx.mesh.create_rectangle(
     MPI.COMM_WORLD, [lower_left, upper_right], [nx, ny], cell_type=cell_type
 )
-@problem{*problem_variable*}.mesh = F.Mesh({*dolfinx_mesh_variable*}, coordinate_system=coordinate_system)`
+@problem--{*problem_variable*}@.mesh = F.Mesh({*dolfinx_mesh_variable*}, coordinate_system=coordinate_system)`
 }
 
 const materialsStep: FESTIMStep = {
   title: "3. Materials",
+  name: "materials",
   settings: [
     {
       title: "Materials",
@@ -847,6 +857,7 @@ export const presetSimulations: FESTIMSim[] = [
       temperatureStep,
       settingsStep,
       exportsStep,
+      testingPageVariablesStep,
       runStep
     ]
   }

@@ -453,14 +453,14 @@ print(person)
 `
 }
 
-const testingPageVariablesStep : FESTIMStep = {
-  title: "Other Page Variables",
-  description: "This is a test for accessing the variables associated with other steps",
-  recipe: `problem_name = @problem--{*problem_variable*}@
-  @materials--$materials--{*material.name*}, $@
-  `,
-  settings: []
-}
+// const testingPageVariablesStep : FESTIMStep = {
+//   title: "Other Page Variables",
+//   description: "This is a test for accessing the variables associated with other steps",
+//   recipe: `problem_name = @problem--{*problem_variable*}@
+//   @materials--$materials--{*material.name*}, $@
+//   `,
+//   settings: []
+// }
 
 const problemStep: FESTIMStep = {
   title: "1. Problem",
@@ -607,14 +607,14 @@ $volumes--{*volume.variable*}=F.VolumeSubdomain(id={*volume.id*}, material={*vol
 
 $surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})$
 
-problem.subdomains = [$volumes--{*volume.variable*}, $$surfaces--{*surface.variable*}, $]
+@problem--{*problem_variable*}@.subdomains = [$volumes--{*volume.variable*}, $$surfaces--{*surface.variable*}, $]
 
-problem.surface_to_volume = {
+@problem--{*problem_variable*}@.surface_to_volume = {
 $surfaces-- {*surface.variable*} : {*surface.linked_volume_variable*}$
 }
 
 $interfaces--{*interface.variable*}=F.Interface(id={*interface.id*}, subdomains=[{*interface.subdomains*}], penalty_term={*interface.penalty_term*})$
-problem.interfaces = [$interfaces--{*interface.variable*},$]
+@problem--{*problem_variable*}@.interfaces = [$interfaces--{*interface.variable*},$]
 `
 }
 
@@ -634,7 +634,7 @@ $specieses--{*species.variable*} = F.Species(name="{*species.name*}", mobile={*s
 {*species.variable*}.subdomains = [{*species.subdomains*}]
 $
 
-problem.species = [$specieses--{*species.variable*}, $]`
+@problem--{*problem_variable*}@.species = [$specieses--{*species.variable*}, $]`
 }
 
 const initialConditionsStep: FESTIMStep = {
@@ -650,7 +650,7 @@ const initialConditionsStep: FESTIMStep = {
   recipe: `# 5b. Create initial conditions
 # at t=0, c_empty_trap = 1 in volume 1
 $concentrations--{*concentration.variable*} = F.InitialConcentration(species={*concentration.species_variable*}, value={*concentration.value*}, volume={*concentration.volume_variable*})$
-problem.initial_conditions = [$concentrations--{*concentration.variable*}, $]
+@problem--{*problem_variable*}@.initial_conditions = [$concentrations--{*concentration.variable*}, $]
 
 # NOTE by default other ICs are set to zero`
 }
@@ -678,7 +678,7 @@ $reactions--{*reaction.variable*} = F.Reaction(
     volume={*reaction.volume_variable*},
 )$
 
-problem.reactions = [$reactions--{*reaction.variable*}, $]`
+@problem--{*problem_variable*}@.reactions = [$reactions--{*reaction.variable*}, $]`
 }
 
 const boundaryConditionsStep: FESTIMStep = {
@@ -693,7 +693,7 @@ const boundaryConditionsStep: FESTIMStep = {
   ],
   recipe: `# 6. Create boundary conditions
 $fixed_bcs--{*fixed_bc.variable*} = F.FixedConcentrationBC(subdomain={*fixed_bc.surface_subdomain_variable*}, value={*fixed_bc.value*}, species={*fixed_bc.species_variable*})$
-problem.boundary_conditions = [$fixed_bcs--{*fixed_bc.variable*}, $]
+@problem--{*problem_variable*}@.boundary_conditions = [$fixed_bcs--{*fixed_bc.variable*}, $]
 `
 }
 
@@ -709,7 +709,7 @@ const particleSourcesStep: FESTIMStep = {
   ],
   recipe: `# 7. Create particle sources
 $sources--{*source.variable*} = F.ParticleSource(species={*source.species_variable*}, volume={*source.volume_variable*}, value={*source.value*})$
-problem.sources = [$sources--{*source.variable*}, $]`
+@problem--{*problem_variable*}@.sources = [$sources--{*source.variable*}, $]`
 }
 
 const temperatureStep: FESTIMStep = {
@@ -722,7 +722,7 @@ const temperatureStep: FESTIMStep = {
     }
   ],
   recipe: `# 8. Temperature
-problem.temperature = {*temperature*}  # K
+@problem--{*problem_variable*}@.temperature = {*temperature*}  # K
 `
 }
 
@@ -756,7 +756,7 @@ const settingsStep: FESTIMStep = {
     }
   ],
   recipe: `# 9. Settings
-problem.settings = F.Settings(
+@problem--{*problem_variable*}@.settings = F.Settings(
     atol={*atoi*}, rtol={*rtoi*}, transient={*transient*}, stepsize={*stepsize*}, final_time={*final_time*}
 )`
 }
@@ -814,7 +814,7 @@ $volume_quantities--{*volume_quantity.variable*} = F.{*volume_quantity.quantity_
 
 {*derived_export_list_variable*} = [$surface_quantities--{*surface_quantity.variable*}, $$volume_quantities--{*volume_quantity.variable*}, $]
   
-problem.exports = {*field_export_list_variable*} + {*derived_export_list_variable*}
+@problem--{*problem_variable*}@.exports = {*field_export_list_variable*} + {*derived_export_list_variable*}
 `
 }
 
@@ -829,8 +829,8 @@ const runStep: FESTIMStep = {
   ],
   recipe: `# 11. Run
 # initialise and run the problem
-problem.initialise()
-problem.run()
+@problem--{*problem_variable*}@.initialise()
+@problem--{*problem_variable*}@.run()
 `
 }
 
@@ -857,7 +857,7 @@ export const presetSimulations: FESTIMSim[] = [
       temperatureStep,
       settingsStep,
       exportsStep,
-      testingPageVariablesStep,
+      // testingPageVariablesStep,
       runStep
     ]
   }

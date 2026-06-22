@@ -111,7 +111,7 @@ export default function Home() {
             const expression = tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}")
             out.push(expression)
             out.push("@")
-            console.log(`Encountered step-accessing form: @${pageName}--${expression}@`)
+            console.log(`Encountered step variable, form: @${pageName}--${expression}@`)
             currentIndex = nextIndex
             continue 
           }
@@ -119,10 +119,10 @@ export default function Home() {
           let expression = tokens.slice(currentIndex,closingIndex).join("")
           let cleanExpression = expression.replaceAll("{*", "{").replaceAll("*}", "}")
           let value = parseRecipe({values: selectedBinding.values, recipe: expression})
-          console.log("Clean Expression: ", cleanExpression)
+          // console.log("Clean Expression: ", cleanExpression)
           out.push(value != cleanExpression ? value : `@${pageName}--${expression}@`)
           currentIndex = nextIndex
-          console.log(`Encountered step-accessing form: @${pageName}--${expression}@`)
+          console.log(`Encountered step variable, form: @${pageName}--${expression}@`)
 
         } else if (token == "{*") {
           // We have "{*" + variableName + "*}"

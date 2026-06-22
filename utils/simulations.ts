@@ -16,6 +16,7 @@ export type FESTIMSetting = {
 // Step in a FESTIM simulation
 export type FESTIMStep = {
   title: string;
+  name: string;
   description?: string;
   settings: FESTIMSetting[];
   recipe?: string; // Recipe for assembling Python code
@@ -454,6 +455,7 @@ print(person)
 
 const problemStep: FESTIMStep = {
   title: "1. Problem",
+  name: "problem",
   description: "Create the root FESTIM problem object.",
   settings: [
     {
@@ -541,7 +543,7 @@ cell_type = dolfinx.mesh.CellType.{*cell_type*}
 {*dolfinx_mesh_variable*} = dolfinx.mesh.create_rectangle(
     MPI.COMM_WORLD, [lower_left, upper_right], [nx, ny], cell_type=cell_type
 )
-problem.mesh = F.Mesh({*dolfinx_mesh_variable*}, coordinate_system=coordinate_system)`
+@problem{*problem_variable*}.mesh = F.Mesh({*dolfinx_mesh_variable*}, coordinate_system=coordinate_system)`
 }
 
 const materialsStep: FESTIMStep = {
@@ -593,7 +595,7 @@ eps = {*epsilon_helper_variable*}
 
 $volumes--{*volume.variable*}=F.VolumeSubdomain(id={*volume.id*}, material={*volume.material*}, locator={*volume.locator*})$
 
-$surfacesbruh--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})$
+$surfaces--{*surface.variable*}=F.SurfaceSubdomain(id={*surface.id*}, locator={*surface.locator*})$
 
 problem.subdomains = [$volumes--{*volume.variable*}, $$surfaces--{*surface.variable*}, $]
 
@@ -815,7 +817,7 @@ const runStep: FESTIMStep = {
       type: "run"
     }
   ],
-  recipe: `# 10 Run
+  recipe: `# 11. Run
 # initialise and run the problem
 problem.initialise()
 problem.run()

@@ -5,13 +5,11 @@ import { useEffect, useState } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import TrameVisualizer from "@/components/TrameVisualizer";
-import { customClasses, exampleSimulation, FESTIMSetting, FESTIMSim, FESTIMStep, listTesting, presetSimulations } from "@/utils/simulations";
-import { listenerCount } from "process";
-type Dictionary = {
-  [key: string]: any
-}
+import { customClasses, exampleSimulation, FESTIMSetting, FESTIMSim, FESTIMStep, presetSimulations } from "@/utils/simulations";
+
 export type Binding = {
   index: number,
+  name: string,
   snippet: string,
   values: {
     [key: string]: any
@@ -38,6 +36,7 @@ export default function Home() {
       }
       initializedBindings.push({
         index: i,
+        name: step.name ?? step.title,
         snippet: "",
         values,
         recipe: step.recipe ?? ""
@@ -74,11 +73,17 @@ export default function Home() {
     console.log("Tokens: ", tokenize(recipe))
 
     // Thank you 6.1010 for making us do Symbolic Algebra and LISP Parser
+
     // Special character for variables
     modifiedRecipe = recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--")
 
     // Special character for lists
-    modifiedRecipe = modifiedRecipe.replaceAll("$", "--$--").replaceAll(/--{2,}/g,"--")
+    modifiedRecipe = modifiedRecipe.replaceAll("$", "--$--")
+
+    // Special character for different page variables
+    modifiedRecipe = modifiedRecipe.replaceAll("@", "--@--")
+
+    modifiedRecipe = modifiedRecipe.replaceAll(/--{2,}/g,"--")
     let tokens = modifiedRecipe.split("--")
 
     const parse = (tokens: string[], start: number = 0) => {
@@ -86,7 +91,28 @@ export default function Home() {
       let currentIndex = start
       while (currentIndex < tokens.length) {
         let token = tokens[currentIndex]
-        if (token == "{*") {
+        if (token == "@") {
+          // We have "@" + pageName + "{*" + variableName + "*}"
+          currentIndex += 1 // Set to page name
+          let pageName = tokens[currentIndex]
+          let selectedBinding : Binding = bindings.filter(b => b.name == pageName)[0]
+          
+          if(selectedBinding) {
+            currentIndex += 2 // Skip to variable name
+            let variableName = tokens[currentIndex]
+            let valueExists = (variableName in selectedBinding.values && selectedBinding.values[variableName].toString() != "")
+            let value = valueExists ? selectedBinding.values[variableName] : `@${pageName}.{${variableName}}`
+            out.push(value)
+            currentIndex += 2 // Skip to next token
+            console.log(`Encountered step-accessing form: @${pageName}.{${variableName}}`)
+          } else {
+            currentIndex += 2 // Skip to variable name
+            let variableName = tokens[currentIndex]
+            out.push(`@${pageName}.{${variableName}}`)
+            currentIndex += 2 // Skip to next token
+          }
+
+        } else if (token == "{*") {
           // We have "{*" + variableName + "*}"
           currentIndex += 1 // Set to variable index
           let variableName = tokens[currentIndex]
@@ -96,7 +122,7 @@ export default function Home() {
           currentIndex += 2
 
           console.log(`Encountered variable form: {${variableName}}`)
-        } else if (token.includes("$")) {
+        } else if (token == "$") {
           // We have "$" + binding + expression + "$"
           // x being the separator
           currentIndex += 1 // to binding
@@ -160,13 +186,15 @@ export default function Home() {
   }
 
   const updateCodeWithIndexedBinding = (indexedBinding: Binding, exclusive: boolean) => {
-    let parsedRecipe = parseRecipe(indexedBinding)
-    indexedBinding.snippet = parsedRecipe
     if (exclusive) {
+      let parsedRecipe = parseRecipe(indexedBinding)
+      indexedBinding.snippet = parsedRecipe
       setPythonCode(parsedRecipe)
     } else {
       let out = []
       for (let binding of bindings) {
+        let parsedRecipe = parseRecipe(binding)
+        binding.snippet = parsedRecipe
         if (binding.snippet) out.push(binding.snippet)
       }
       setPythonCode(out.join("\n\n"))

@@ -16,14 +16,6 @@ const getBindingName = (setting: FESTIMSetting) => {
     
 function InputList({ setting, list, bindings, updateBindings, currentIndex }: { setting: FESTIMSetting, list:any[], bindings: Binding[], updateBindings: Function, currentIndex: number }) {
     const [correspondingList, setCorrespondingList] = useState(list)
-
-    useEffect(()=>{
-        console.log("Corresponding List is: ", list)
-    }, [])
-    // This makes an index for every existing element in our array of values
-    // such that if voluems is a list, we have an index corresponding to each
-    // (Ideally that is...) :D
-
     
     const correspondingField = (classSetting: FESTIMSetting, index:number, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos

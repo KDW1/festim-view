@@ -14,11 +14,12 @@ const getBindingName = (setting: FESTIMSetting) => {
     return setting.itemName ?? setting.name ?? setting.title
 }
     
-function InputList({ setting, bindings, updateBindings, currentIndex }: { setting: FESTIMSetting, bindings: Binding[], updateBindings: Function, currentIndex: number }) {
-    let arrayLength = bindings[currentIndex].values[setting.name].length
+function InputList({ setting, list, bindings, updateBindings, currentIndex }: { setting: FESTIMSetting, list:any[], bindings: Binding[], updateBindings: Function, currentIndex: number }) {
+    const [correspondingList, setCorrespondingList] = useState(list)
 
-    const [indices, setIndices] = useState([...Array(arrayLength).keys()])
-
+    useEffect(()=>{
+        console.log("Corresponding List is: ", list)
+    }, [])
     // This makes an index for every existing element in our array of values
     // such that if voluems is a list, we have an index corresponding to each
     // (Ideally that is...) :D
@@ -108,28 +109,32 @@ function InputList({ setting, bindings, updateBindings, currentIndex }: { settin
         <div className="flex flex-col gap-y-2">
             <div className="flex gap-x-2">
                 <button onClick={() => {
-                    let newIndex = indices[indices.length - 1] + 1
-                    setIndices([...indices, newIndex])
+                    // let newIndex = indices[indices.length - 1] + 1
+                    // setIndices([...indices, newIndex])
                     
                     let indexedBinding = bindings[currentIndex]
                     let list = indexedBinding.values[setting.name]
+                    let longerList = [...list, {}]
                     // Making that new space for the new array item
-                    updateBindings(setting.name, [...list, {}])
+                    updateBindings(setting.name, longerList)
+                    setCorrespondingList(longerList)
                 }} className="button">
                     Add
                 </button>
                 <button onClick={() => {
-                    setIndices(indices.slice(0, indices.length - 1))
+                    // setIndices(indices.slice(0, indices.length - 1))
 
                     let indexedBinding = bindings[currentIndex]
                     let list = indexedBinding.values[setting.name]
+                    let shortenedList = [...list.slice(0,list.length-1)]
 
-                    updateBindings(setting.name, list.slice(0,list.length-1))
-                }} disabled={indices.length <= 1} className="button">
+                    updateBindings(setting.name, shortenedList)
+                    setCorrespondingList(shortenedList)
+                }} disabled={correspondingList.length <= 1} className="button">
                     Remove
                 </button>
             </div>
-            {indices.map(i => (
+            {list.map((el:any, i:number) => (
                 <div key={`item${i}`}>
                     <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i+1}</p>
                     {/* Note that here we don't have any recursive lists */}
@@ -219,7 +224,7 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                             {setting.description && <p className="text-sm italic">
                                 {setting.description}
                             </p>}
-                            {setting.list ? <InputList currentIndex={currentIndex} updateBindings={updateBindings} bindings={bindings} setting={setting}></InputList> : correspondingField(setting)}
+                            {setting.list ? <InputList list={bindings[currentIndex].values[setting.name]} currentIndex={currentIndex} updateBindings={updateBindings} bindings={bindings} setting={setting}></InputList> : correspondingField(setting)}
                         </div>
                     ))
                 }

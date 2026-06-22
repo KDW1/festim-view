@@ -15,89 +15,23 @@ type CodeEditorProps = {
     updateArgs: Function,
     mode: "window" | "festim",
     snippetOnly: boolean,
-    setSnippetOnly: Function
+    setSnippetOnly: Function,
+    processingCode: boolean,
+    evaluatingCode: boolean,
+    setProcessingCode: Function,
+    setEvaluatingCode: Function,
+    sendPythonRequest: Function
 }
 
-export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, updateArgs, mode, snippetOnly, setSnippetOnly }: CodeEditorProps) {
+export default function PythonCodeEditor({ pythonCode, evaluatingCode, processingCode, sendPythonRequest, setEvaluatingCode, setProcessingCode, updatePythonCode, args, updateArgs, mode, snippetOnly, setSnippetOnly }: CodeEditorProps) {
     // Monaco Editor States
     const monaco = useMonaco()
     const [themeName, setThemeName] = useState("vs-light")
     const [backgroundColor, setBackgroundColor] = useState("#fff")
-    const [evaluatingCode, setEvaluatingCode] = useState(false)
-    const [processingCode, setProcessingCode] = useState(false)
-
-    // Python Console States
-    const [consoleArgs, setConsoleArgs] = useState([])
-
-    // Python Code Evaluation
-    const sendPythonRequest = async (code: string) => {
-        setProcessingCode(true)
-        updateArgs([{
-            message: evaluatingCode ? "Evaluating your expression..." : "Executing code...",
-            status: "info"
-        }])
-        let apiURL = evaluatingCode ? "/api/eval" : "/api/exec"
-        console.log("Code passed in: ", JSON.stringify({ code }))
-        try {
-            let data = await fetch(apiURL, {
-                method: "POST",
-                body: JSON.stringify({
-                    code
-                }),
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            }).then(res => res.json())
-
-            console.log("Data: ", data)
-
-            if (data.error) {
-                updateArgs([{
-                    message: data.error,
-                    status: "error"
-                }])
-            } else {
-                console.log(`Data from ${apiURL},`, data)
-                if (evaluatingCode) {
-                    updateArgs([{
-                        message: "Successfully evaluated code...",
-                        status: "info"
-                    }])
-                    updateArgs([{
-                        message: data.result,
-                        status: "evaluation"
-                    }, {
-                        message: data.output,
-                        status: "output"
-                        ,
-                    }])
-                } else {
-                    updateArgs([{
-                        message: "Successfully executed code...",
-                        status: "info"
-                    }])
-                    updateArgs([{
-                        message: data.output,
-                        status: "output"
-                    }])
-                }
-            }
-        } catch (error) {
-            const errorMessage = `Failed to send the request Python code snippet to ${apiURL}`
-            console.log(error)
-            console.log(errorMessage)
-            updateArgs([{
-                message: errorMessage,
-                status: "error"
-            }])
-        }
-        setProcessingCode(false)
-
-    }
 
     // Key Handling for the Python Code Editor
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.ctrlKey || e.metaKey) {
+        if (e.ctrlKey) {
             let key: string = e.key.toLowerCase()
             switch (key) {
                 case "s":
@@ -108,6 +42,10 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
                 case "e":
                     e.preventDefault()
                     setEvaluatingCode(!evaluatingCode)
+                    break
+                case "shift":
+                    e.preventDefault()
+                    setSnippetOnly(!snippetOnly)
                     break
 
 
@@ -193,7 +131,7 @@ export default function PythonCodeEditor({ pythonCode, updatePythonCode, args, u
                         <p className="text-blue-400 text-sm">
                             Code Snippet Only
                         </p>
-                    <span className="font-normal text-blue-200 italic text-sm">Ctrl+E</span>
+                    <span className="font-normal text-blue-200 italic text-sm">Ctrl+Shift</span>
                     </div> :
                 <div className="flex gap-x-2">
                     <label className="flex items-center cursor-pointer relative">

@@ -7,6 +7,7 @@ import Image from "next/image";
 import TrameVisualizer from "@/components/TrameVisualizer";
 import { customClasses, exampleSimulation, FESTIMSetting, FESTIMSim, FESTIMStep, presetSimulations } from "@/utils/simulations";
 
+// TODO: Need to develop some full fledged context for the Python Code Editor in order to avoid prop drilling
 export type Binding = {
   index: number,
   name: string,
@@ -19,7 +20,7 @@ export type Binding = {
 
 
 export default function Home() {
-  const defaultSimulation : FESTIMSim = presetSimulations[0]
+  const defaultSimulation: FESTIMSim = presetSimulations[0]
 
   let initializedBindings = []
   if (defaultSimulation) {
@@ -50,6 +51,9 @@ export default function Home() {
   const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim | null>(presetSimulations[0])
   const [bindings, setBindings] = useState<Binding[]>(initializedBindings ?? []) // Bindings for selected simulations
   const [args, setArgs] = useState<ConsoleArg[]>([])
+  const [processingCode, setProcessingCode] = useState<boolean>(false)
+  const [evaluatingCode, setEvaluatingCode] = useState(false)
+
   const updateArgs = (newArgs: ConsoleArg[]) => {
     setArgs(args => [...args, ...(newArgs.filter(el => el.message))])
   }
@@ -60,16 +64,16 @@ export default function Home() {
     setPythonCode(code)
   }
 
-  const parseRecipe = (indexedBinding: { values: {[key: string]: any}, recipe: string }) => {
+  const parseRecipe = (indexedBinding: { values: { [key: string]: any }, recipe: string }) => {
     console.log("Parsing with binding: ", indexedBinding)
     let recipe = indexedBinding.recipe
     let modifiedRecipe = recipe
-    if(!recipe) return ""
+    if (!recipe) return ""
 
-    const tokenize = (recipe : string) => {
-      return recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--").replaceAll("$", "--$--").replaceAll(/--{2,}/g,"--").split("--")
+    const tokenize = (recipe: string) => {
+      return recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--").replaceAll("$", "--$--").replaceAll(/--{2,}/g, "--").split("--")
     }
-    
+
     console.log("Tokens: ", tokenize(recipe))
 
     // Thank you 6.1010 for making us do Symbolic Algebra and LISP Parser
@@ -83,7 +87,7 @@ export default function Home() {
     // Special character for different page variables
     modifiedRecipe = modifiedRecipe.replaceAll("@", "--@--")
 
-    modifiedRecipe = modifiedRecipe.replaceAll(/--{2,}/g,"--")
+    modifiedRecipe = modifiedRecipe.replaceAll(/--{2,}/g, "--")
     let tokens = modifiedRecipe.split("--")
 
     const parse = (tokens: string[], start: number = 0) => {
@@ -95,14 +99,14 @@ export default function Home() {
           // We have "@" + pageName + expression + "@"
           currentIndex += 1 // to page name
           let pageName = tokens[currentIndex]
-          let selectedBinding : Binding = bindings.filter(b => b.name == pageName)[0]
+          let selectedBinding: Binding = bindings.filter(b => b.name == pageName)[0]
 
           currentIndex += 1 // to expression
           let followingTokens = tokens.slice(currentIndex)
           let closingIndex = currentIndex + followingTokens.indexOf("@")
-          let nextIndex = closingIndex+1 // Skip the closing @
-          
-          if(!selectedBinding) {
+          let nextIndex = closingIndex + 1 // Skip the closing @
+
+          if (!selectedBinding) {
             // In the case that the binding doesn't exist
             console.log("Page doesn't exist")
             out.push("@")
@@ -113,12 +117,12 @@ export default function Home() {
             out.push("@")
             console.log(`Encountered step variable, form: @${pageName}--${expression}@`)
             currentIndex = nextIndex
-            continue 
+            continue
           }
 
-          let expression = tokens.slice(currentIndex,closingIndex).join("")
+          let expression = tokens.slice(currentIndex, closingIndex).join("")
           let cleanExpression = expression.replaceAll("{*", "{").replaceAll("*}", "}")
-          let value = parseRecipe({values: selectedBinding.values, recipe: expression})
+          let value = parseRecipe({ values: selectedBinding.values, recipe: expression })
           // console.log("Clean Expression: ", cleanExpression)
           out.push(value != cleanExpression ? value : `@${pageName}--${expression}@`)
           currentIndex = nextIndex
@@ -138,16 +142,16 @@ export default function Home() {
           // We have "$" + binding + expression + "$"
           // x being the separator
           currentIndex += 1 // to binding
-          
+
           let arrayName = tokens[currentIndex]
-          
+
           let arrayExists = (arrayName in indexedBinding.values && indexedBinding.values[arrayName] != "")
           currentIndex += 1 // to expression
           let followingTokens = tokens.slice(currentIndex)
           let closingIndex = currentIndex + followingTokens.indexOf("$")
-          let nextIndex = closingIndex+1 // Skip the closing }
-          
-          if(!arrayExists || indexedBinding.values[arrayName].every((obj:Object) => Object.keys(obj).length == 0)) {
+          let nextIndex = closingIndex + 1 // Skip the closing }
+
+          if (!arrayExists || indexedBinding.values[arrayName].every((obj: Object) => Object.keys(obj).length == 0)) {
             // In the case that the binding doesn't exist
             out.push("$")
             out.push(arrayName)
@@ -159,22 +163,22 @@ export default function Home() {
             currentIndex = nextIndex
             continue
           }
-          
+
           let arrayBinding = indexedBinding.values[arrayName]
-          let expression = tokens.slice(currentIndex,closingIndex).join("")
+          let expression = tokens.slice(currentIndex, closingIndex).join("")
 
           let listExpressions = []
-          
-          for(let binding of arrayBinding) {
-            if(Object.keys(binding).length == 0) continue
-            
-            let parsedExpression = parseRecipe({values: binding, recipe: expression})
-            
+
+          for (let binding of arrayBinding) {
+            if (Object.keys(binding).length == 0) continue
+
+            let parsedExpression = parseRecipe({ values: binding, recipe: expression })
+
             listExpressions.push(parsedExpression)
             let nextCharacter = tokens[nextIndex][0]
             let isInline = (nextCharacter == "]" || nextCharacter == "," || nextCharacter == "$")
-            
-            if((nextIndex < tokens.length) && !isInline && arrayBinding.length > 1) {
+
+            if ((nextIndex < tokens.length) && !isInline && arrayBinding.length > 1) {
               listExpressions.push("\n")
             }
           }
@@ -188,7 +192,7 @@ export default function Home() {
           currentIndex += 1
         }
       }
-      
+
       return [out, currentIndex]
     }
 
@@ -209,33 +213,114 @@ export default function Home() {
         binding.snippet = parsedRecipe
         if (binding.snippet) out.push(binding.snippet)
       }
-      setPythonCode(out.join("\n\n"))
+      let outString = out.join("\n\n")
+      if(currentSimulation?.preCode) outString = currentSimulation.preCode + "\n\n" + outString
+      if(currentSimulation?.postCode) outString += currentSimulation.postCode
+      setPythonCode(outString)
     }
   }
 
   const updateBindings = (binding: string, value: any) => {
     let indexedBinding = bindings[currentIndex]
     indexedBinding.values[binding] = value
-    
+
     if (indexedBinding.recipe) {
       updateCodeWithIndexedBinding(indexedBinding, snippetOnly)
     }
-    
+
     let updatedBindings = [...bindings]
     updatedBindings[currentIndex] = indexedBinding
     setBindings(updatedBindings)
   }
 
-  
-  useEffect(()=>{
+
+  // Python Code Evaluation
+  const sendPythonRequest = async (code?: string) => {
+    if (!code) code = pythonCode
+    setProcessingCode(true)
+    updateArgs([{
+      message: evaluatingCode ? "Evaluating your expression..." : "Executing code...",
+      status: "info"
+    }])
+    let apiURL = evaluatingCode ? "/api/eval" : "/api/exec"
+    console.log("Code passed in: ", JSON.stringify({ code }))
+    try {
+      let data = await fetch(apiURL, {
+        method: "POST",
+        body: JSON.stringify({
+          code
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }).then(res => res.json())
+
+      console.log("Data: ", data)
+
+      if (data.error) {
+        updateArgs([{
+          message: data.error,
+          status: "error"
+        }])
+      } else {
+        console.log(`Data from ${apiURL},`, data)
+        if (evaluatingCode) {
+          updateArgs([{
+            message: "Successfully evaluated code...",
+            status: "info"
+          }])
+          updateArgs([{
+            message: data.result,
+            status: "evaluation"
+          }, {
+            message: data.output,
+            status: "output"
+            ,
+          }])
+        } else {
+          updateArgs([{
+            message: "Successfully executed code...",
+            status: "info"
+          }])
+          updateArgs([{
+            message: data.output,
+            status: "output"
+          }])
+        }
+      }
+    } catch (error) {
+      const errorMessage = `Failed to send the request Python code snippet to ${apiURL}`
+      console.log(error)
+      console.log(errorMessage)
+      updateArgs([{
+        message: errorMessage,
+        status: "error"
+      }])
+    }
+    setProcessingCode(false)
+
+  }
+
+
+  useEffect(() => {
     console.log("Initialized Bindings: ", initializedBindings)
   }, [])
 
   useEffect(() => {
     if (mode == "festim") {
+      console.log(bindings.length)
+      console.log("Current Index: ", currentIndex)
+      let snippetVisibility = true
+      if (currentIndex == bindings.length - 1) {
+        console.log("We've reached the last step")
+        setSnippetOnly(false)
+        snippetVisibility = false
+      } else {
+        setSnippetOnly(true)
+      }
       let indexedBinding = bindings[currentIndex]
       if (indexedBinding) {
-        updateCodeWithIndexedBinding(bindings[currentIndex], snippetOnly)
+        updateCodeWithIndexedBinding(indexedBinding, snippetVisibility)
       }
     }
   }, [currentIndex, mode])
@@ -243,7 +328,7 @@ export default function Home() {
     <div className="h-screen bg-primarybg px-16 py-8">
       <main className="relative w-full h-full overflow-y-clip mx-auto flex flex-row gap-4">
         <div className="w-2/3 h-full flex flex-col flex-1 relative">
-          <PythonCodeEditor snippetOnly={snippetOnly} setSnippetOnly={(value: boolean) => {
+          <PythonCodeEditor sendPythonRequest={sendPythonRequest} setEvaluatingCode={setEvaluatingCode} evaluatingCode={evaluatingCode} processingCode={processingCode} setProcessingCode={setProcessingCode} snippetOnly={snippetOnly} setSnippetOnly={(value: boolean) => {
             setSnippetOnly(value)
             let indexedBinding = bindings[currentIndex]
             updateCodeWithIndexedBinding(indexedBinding, value)
@@ -251,7 +336,7 @@ export default function Home() {
         </div>
         <div className="w-1/3 flex flex-col gap-4">
           <div className="flex flex-1 h-4/5">
-            <TrameVisualizer mode={mode} currentIndex={currentIndex} setCurrentIndex={(index: number) => setCurrentIndex(index)} updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={currentSimulation} />
+            <TrameVisualizer processingCode={processingCode} sendPythonRequest={sendPythonRequest} mode={mode} currentIndex={currentIndex} setCurrentIndex={(index: number) => setCurrentIndex(index)} updateMode={(mode: "window" | "festim") => setMode(mode)} bindings={bindings} updateBindings={updateBindings} simulation={currentSimulation} />
           </div>
           <PythonConsole args={args} />
         </div>

@@ -7,16 +7,18 @@ type FESTIMCodePromptsProps = {
     updateBindings: Function;
     currentIndex: number;
     setCurrentIndex: Function;
-    bindings: Binding[]
+    bindings: Binding[];
+    sendPythonRequest: Function;
+    processingCode: boolean
 }
 
 const getBindingName = (setting: FESTIMSetting) => {
     return setting.itemName ?? setting.name ?? setting.title
 }
     
-function InputList({ setting, list, bindings, updateBindings, currentIndex }: { setting: FESTIMSetting, list:any[], bindings: Binding[], updateBindings: Function, currentIndex: number }) {
+function InputList({ processingCode, setting, list, bindings, updateBindings, currentIndex }: { processingCode: boolean, setting: FESTIMSetting, list:any[], bindings: Binding[], updateBindings: Function, currentIndex: number }) {
     const [correspondingList, setCorrespondingList] = useState(list)
-    
+
     const correspondingField = (classSetting: FESTIMSetting, index:number, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
         let indexedBinding = bindings[currentIndex]
@@ -137,7 +139,7 @@ function InputList({ setting, list, bindings, updateBindings, currentIndex }: { 
     )
 }
 
-export default function FESTIMCodePrompts({ simulation, updateBindings, bindings, currentIndex, setCurrentIndex }: FESTIMCodePromptsProps) {
+export default function FESTIMCodePrompts({ simulation, processingCode, sendPythonRequest, updateBindings, bindings, currentIndex, setCurrentIndex }: FESTIMCodePromptsProps) {
     // This will be a dictionary of bindings corresponding to each step!
 
     // FESTIM API Reference for FESTIM classes
@@ -180,6 +182,14 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                             }
                         </select>
                     )
+                case "run":
+                    return (
+                        <button disabled={processingCode} onClick={(e) => {
+                    sendPythonRequest()
+                }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
+                    Run Code
+                </button>
+                    )
                 default:
                     if (setting.type in customClasses) {
                         return (
@@ -216,7 +226,7 @@ export default function FESTIMCodePrompts({ simulation, updateBindings, bindings
                             {setting.description && <p className="text-sm italic">
                                 {setting.description}
                             </p>}
-                            {setting.list ? <InputList list={bindings[currentIndex].values[setting.name]} currentIndex={currentIndex} updateBindings={updateBindings} bindings={bindings} setting={setting}></InputList> : correspondingField(setting)}
+                            {setting.list ? <InputList processingCode={processingCode} list={bindings[currentIndex].values[setting.name]} currentIndex={currentIndex} updateBindings={updateBindings} bindings={bindings} setting={setting}></InputList> : correspondingField(setting)}
                         </div>
                     ))
                 }

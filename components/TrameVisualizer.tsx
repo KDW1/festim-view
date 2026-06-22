@@ -16,13 +16,15 @@ type VisualizerProps = {
   bindings: Binding[];
   currentIndex: number;
   setCurrentIndex: Function;
+  sendPythonRequest: Function;
+  processingCode: boolean;
 };
 
 const iframe_id = "my_frame"
 const iframe_url = "http://localhost:8080/"
 
 export default function TrameVisualizer({
-  onCommunicatorReady, simulation, updateBindings, bindings, mode, updateMode, currentIndex, setCurrentIndex
+  onCommunicatorReady, processingCode, simulation, sendPythonRequest, updateBindings, bindings, mode, updateMode, currentIndex, setCurrentIndex
 }: VisualizerProps) {
   const tabs = simulation ? ["Window", "FESTIM"] : ["Window"]
   const [resolution, setResolution] = useState("...")
@@ -96,7 +98,7 @@ export default function TrameVisualizer({
       </div>
       {
         currentTab == "festim" && simulation &&
-        <FESTIMCodePrompts currentIndex={currentIndex} setCurrentIndex={setCurrentIndex} bindings={bindings} updateBindings={updateBindings} simulation={simulation} />
+        <FESTIMCodePrompts sendPythonRequest={sendPythonRequest} processingCode={processingCode} currentIndex={currentIndex} setCurrentIndex={setCurrentIndex} bindings={bindings} updateBindings={updateBindings} simulation={simulation} />
       }
     </div>
   )

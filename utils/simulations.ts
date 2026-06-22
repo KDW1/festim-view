@@ -1,6 +1,5 @@
-// TODO: Need to work on some global context syntax so you can access values across steps
-// TODO: Need to fix some issue with the species.variable thing 
-// TODO: Make a better separator system
+// TODO: For list expression need: 1) Better separator notation, 2) New format for enclosing expressions
+
 // Setting in a step of a FESTIM simulation
 export type FESTIMSetting = {
   title: string;
@@ -25,7 +24,10 @@ export type FESTIMStep = {
 // FESTIM simulation, composed of multiple steps
 export type FESTIMSim = {
   title: string;
-  steps: FESTIMStep[]
+  steps: FESTIMStep[];
+  preCode?: string;
+  postCode?:string
+
 }
 
 // Dictionary of FESTIM classes
@@ -844,6 +846,21 @@ export const exampleSimulation : FESTIMSim = {
 export const presetSimulations: FESTIMSim[] = [
   {
     title: "2D Permeation",
+    preCode: `# Code copied from the 2d_permeation FESTIM example
+import warnings
+
+import dolfinx
+import festim as F
+import matplotlib.pyplot as plt
+import numpy as np
+from mpi4py import MPI
+
+if F.__version__ != "2.0b2.post2":
+    warnings.warn(
+        "This example was tested with festim version 2.0b2.post2. "
+        "If you are using a different version, the results may differ.",
+        stacklevel=2,
+    )`,
     steps: [
       problemStep,
       meshStep,

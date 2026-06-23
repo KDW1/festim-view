@@ -23,25 +23,32 @@ export default function Home() {
   const defaultSimulation: FESTIMSim = presetSimulations[0]
 
   let initializedBindings = []
-  if (defaultSimulation) {
-    for (let i = 0; i < defaultSimulation.steps.length; i++) {
-      let step: FESTIMStep = defaultSimulation.steps[i]
-      let values: { [key: string]: any } = {}
-      for (let setting of step.settings) {
-        let binding = setting.name ?? setting.title
-        if (setting.defaultValue) {
-          values[binding] = setting.defaultValue
-        } else {
-          values[binding] = setting.list ? [{}] : ""
+  if (typeof window !== 'undefined' && localStorage.getItem("bindings")) {
+    let objects = JSON.parse(localStorage.getItem("bindings"))
+    console.log(objects)
+    console.log(objects[0])
+    initializedBindings = objects
+  } else {
+    if (defaultSimulation) {
+      for (let i = 0; i < defaultSimulation.steps.length; i++) {
+        let step: FESTIMStep = defaultSimulation.steps[i]
+        let values: { [key: string]: any } = {}
+        for (let setting of step.settings) {
+          let binding = setting.name ?? setting.title
+          if (setting.defaultValue) {
+            values[binding] = setting.defaultValue
+          } else {
+            values[binding] = setting.list ? [{}] : ""
+          }
         }
+        initializedBindings.push({
+          index: i,
+          name: step.name ?? step.title,
+          snippet: "",
+          values,
+          recipe: step.recipe ?? ""
+        })
       }
-      initializedBindings.push({
-        index: i,
-        name: step.name ?? step.title,
-        snippet: "",
-        values,
-        recipe: step.recipe ?? ""
-      })
     }
   }
 
@@ -214,8 +221,8 @@ export default function Home() {
         if (binding.snippet) out.push(binding.snippet)
       }
       let outString = out.join("\n\n")
-      if(currentSimulation?.preCode) outString = currentSimulation.preCode + "\n\n" + outString
-      if(currentSimulation?.postCode) outString += currentSimulation.postCode
+      if (currentSimulation?.preCode) outString = currentSimulation.preCode + "\n\n" + outString
+      if (currentSimulation?.postCode) outString += currentSimulation.postCode
       setPythonCode(outString)
     }
   }
@@ -303,10 +310,6 @@ export default function Home() {
 
 
   useEffect(() => {
-    console.log("Initialized Bindings: ", initializedBindings)
-  }, [])
-
-  useEffect(() => {
     if (mode == "festim") {
       console.log(bindings.length)
       console.log("Current Index: ", currentIndex)
@@ -324,6 +327,7 @@ export default function Home() {
       }
     }
   }, [currentIndex, mode])
+
   return (
     <div className="h-screen bg-primarybg px-16 py-8">
       <main className="relative w-full h-full overflow-y-clip mx-auto flex flex-row gap-4">

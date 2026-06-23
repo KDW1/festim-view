@@ -28,6 +28,7 @@ export default function PythonCodeEditor({ pythonCode, evaluatingCode, processin
     const monaco = useMonaco()
     const [themeName, setThemeName] = useState("vs-light")
     const [backgroundColor, setBackgroundColor] = useState("#fff")
+    const [copyingCode, setCopyingCode] = useState(false)
 
     // Key Handling for the Python Code Editor
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -158,6 +159,15 @@ export default function PythonCodeEditor({ pythonCode, evaluatingCode, processin
                     Run Code
                 </button>
                 <span className="font-normal text-blue-200 italic">Ctrl+S</span>
+            </div>
+            <div className="flex gap-x-2 items-end">
+                <button disabled={copyingCode} onClick={async (e) => {
+                    setCopyingCode(true)
+                    await navigator.clipboard.writeText(pythonCode)
+                    setTimeout(()=>setCopyingCode(false), 500)
+                }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
+                    Copy Code
+                </button>
             </div>
         </div>
     )

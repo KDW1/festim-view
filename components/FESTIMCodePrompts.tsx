@@ -15,11 +15,11 @@ type FESTIMCodePromptsProps = {
 const getBindingName = (setting: FESTIMSetting) => {
     return setting.itemName ?? setting.name ?? setting.title
 }
-    
-function InputList({ processingCode, setting, list, bindings, updateBindings, currentIndex }: { processingCode: boolean, setting: FESTIMSetting, list:any[], bindings: Binding[], updateBindings: Function, currentIndex: number }) {
+
+function InputList({ processingCode, setting, list, bindings, updateBindings, currentIndex }: { processingCode: boolean, setting: FESTIMSetting, list: any[], bindings: Binding[], updateBindings: Function, currentIndex: number }) {
     const [correspondingList, setCorrespondingList] = useState(list)
 
-    const correspondingField = (classSetting: FESTIMSetting, index:number, prefix: string = "", suffix: string = "") => {
+    const correspondingField = (classSetting: FESTIMSetting, index: number, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
         let indexedBinding = bindings[currentIndex]
 
@@ -28,21 +28,21 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
             console.log("Indexed Binding: ", indexedBinding)
             let indexedObject = list[index]
             console.log(`Indexed Object for index ${index}`, indexedObject)
-            let binding = prefix+getBindingName(classSetting)+suffix
+            let binding = prefix + getBindingName(classSetting) + suffix
             return binding in indexedObject ? indexedObject[binding] : ""
         }
 
         const eventHandler = (e: ChangeEvent<any, any>, classSetting: FESTIMSetting) => {
             let list = [...indexedBinding.values[setting.name]]
             let indexedObject = list[index]
-            let binding = prefix+getBindingName(classSetting)+suffix
+            let binding = prefix + getBindingName(classSetting) + suffix
             const inputType = e.target.type
 
-            if(inputType == "checkbox") {
+            if (inputType == "checkbox") {
                 console.log("Value: ", e.target.checked)
                 indexedObject[binding] = e.target.checked
             } else {
-                if(e.target.value == "") {
+                if (e.target.value == "") {
                     delete indexedObject[binding]
                 } else {
                     indexedObject[binding] = e.target.value
@@ -105,7 +105,7 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
                 <button onClick={() => {
                     // let newIndex = indices[indices.length - 1] + 1
                     // setIndices([...indices, newIndex])
-                    
+
                     let indexedBinding = bindings[currentIndex]
                     let list = indexedBinding.values[setting.name]
                     let longerList = [...list, {}]
@@ -120,7 +120,7 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
 
                     let indexedBinding = bindings[currentIndex]
                     let list = indexedBinding.values[setting.name]
-                    let shortenedList = [...list.slice(0,list.length-1)]
+                    let shortenedList = [...list.slice(0, list.length - 1)]
 
                     updateBindings(setting.name, shortenedList)
                     setCorrespondingList(shortenedList)
@@ -128,11 +128,11 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
                     Remove
                 </button>
             </div>
-            {list.map((el:any, i:number) => (
+            {list.map((el: any, i: number) => (
                 <div key={`item${i}`}>
-                    <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i+1}</p>
+                    <p className="font-semibold">{setting.type[0].toUpperCase() + setting.type.slice(1)} {i + 1}</p>
                     {/* Note that here we don't have any recursive lists */}
-                    {correspondingField({...setting, list: false}, i)}
+                    {correspondingField({ ...setting, list: false }, i)}
                 </div>
             ))}
         </div>
@@ -185,10 +185,10 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                 case "run":
                     return (
                         <button disabled={processingCode} onClick={(e) => {
-                    sendPythonRequest()
-                }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
-                    Run Code
-                </button>
+                            sendPythonRequest()
+                        }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
+                            Run Code
+                        </button>
                     )
                 default:
                     if (setting.type in customClasses) {
@@ -213,7 +213,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
     }
 
     return (
-        <div className="text-primary flex flex-1 flex-col text-base">
+        <div className="text-primary flex flex-1 gap-2 flex-col text-base">
             <p className="font-semibold">{currentStep.title}</p>
             {currentStep.description && <p className="italic text-xs mb-2">{currentStep.description}</p>}
             <div className="gap-4 flex-col flex max-h-72 overflow-y-auto pr-2">
@@ -231,6 +231,20 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     ))
                 }
             </div>
+            <button onClick={(e) => {
+                e.target.disabled = true
+                localStorage.setItem("bindings", JSON.stringify(bindings))
+                setTimeout(()=>(e.target.disabled=false), 750)
+            }} className="button mt-auto">
+                Save Preferences
+            </button>
+            <button onClick={(e) => {
+                e.target.disabled = true
+                localStorage.removeItem("bindings")
+                setTimeout(()=>(e.target.disabled=false), 750)
+            }} className="button mt-auto">
+                Clear Preferences
+            </button>
             <div className="flex gap-2 mt-auto">
                 {
                     currentIndex != 0 &&

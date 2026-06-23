@@ -40,7 +40,7 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
 
             if (inputType == "checkbox") {
                 console.log("Value: ", e.target.checked)
-                indexedObject[binding] = e.target.checked
+                indexedObject[binding] = e.target.checked ? "True" : "False"
             } else {
                 if (e.target.value == "") {
                     delete indexedObject[binding]
@@ -236,14 +236,14 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                 localStorage.setItem("bindings", JSON.stringify(bindings))
                 setTimeout(()=>(e.target.disabled=false), 750)
             }} className="button mt-auto">
-                Save Preferences
+                Save Settings
             </button>
             <button onClick={(e) => {
                 e.target.disabled = true
                 localStorage.removeItem("bindings")
                 setTimeout(()=>(e.target.disabled=false), 750)
             }} className="button mt-auto">
-                Clear Preferences
+                Reset Settings
             </button>
             <div className="flex gap-2 mt-auto">
                 {

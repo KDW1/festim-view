@@ -742,7 +742,7 @@ const settingsStep: FESTIMStep = {
       name: "rtoi"
     },
     {
-      title: "transient",
+      title: "Transient",
       type: "boolean",
       name: "transient"
     },

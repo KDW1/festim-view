@@ -23,16 +23,22 @@ export default function Home() {
   const defaultSimulation: FESTIMSim = presetSimulations[0]
 
   let initializedBindings = []
+  let localStorageBindings = [] 
+
+  // Note this method of storing bindings locally will change in the future
+  // Since I'm pretty sure this isn't reliable
+
   if (typeof window !== 'undefined' && localStorage.getItem("bindings")) {
     let objects = JSON.parse(localStorage.getItem("bindings"))
-    console.log(objects)
-    console.log(objects[0])
-    initializedBindings = objects
-  } else {
-    if (defaultSimulation) {
-      for (let i = 0; i < defaultSimulation.steps.length; i++) {
-        let step: FESTIMStep = defaultSimulation.steps[i]
-        let values: { [key: string]: any } = {}
+    localStorageBindings = objects
+  }
+  if (defaultSimulation) {
+    for (let i = 0; i < defaultSimulation.steps.length; i++) {
+      let step: FESTIMStep = defaultSimulation.steps[i]
+      let values: { [key: string]: any } = {}
+
+      if (!localStorageBindings) {
+        // We initialize the values
         for (let setting of step.settings) {
           let binding = setting.name ?? setting.title
           if (setting.defaultValue) {
@@ -41,14 +47,15 @@ export default function Home() {
             values[binding] = setting.list ? [{}] : ""
           }
         }
-        initializedBindings.push({
-          index: i,
-          name: step.name ?? step.title,
-          snippet: "",
-          values,
-          recipe: step.recipe ?? ""
-        })
       }
+
+      initializedBindings.push({
+        index: i,
+        name: step.name ?? step.title,
+        snippet: "",
+        values: localStorageBindings ? localStorageBindings[i].values : values,
+        recipe: step.recipe ?? ""
+      })
     }
   }
 

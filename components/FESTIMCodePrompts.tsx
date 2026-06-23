@@ -39,7 +39,7 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
             const inputType = e.target.type
 
             if (inputType == "checkbox") {
-                console.log("Value: ", e.target.checked)
+                console.log("Checked Value: ", e.target.checked)
                 indexedObject[binding] = e.target.checked ? "True" : "False"
             } else {
                 if (e.target.value == "") {
@@ -65,7 +65,7 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
                     )
                 case "boolean":
                     return (
-                        <input value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
+                        <input checked={getBindingOfSetting(setting) ?? ""} value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
                     )
                 case "enum":
                     return (
@@ -154,7 +154,15 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
             return indexedBinding.values[prefix + getBindingName(setting) + suffix]
         }
         const eventHandler = (e: ChangeEvent<any, any>, setting: FESTIMSetting) => {
-            updateBindings(prefix + getBindingName(setting) + suffix, e.target.value)
+            let inputType = e.target.type 
+            let newValue = ""
+            if (inputType == "checkbox") {
+                console.log("Checked Value: ", e.target.checked)
+                newValue = e.target.checked ? "True" : "False"
+            } else {
+                newValue = e.target.value
+            }
+            updateBindings(prefix + getBindingName(setting) + suffix, newValue)
         }
 
         const fieldOfType = (type: string) => {
@@ -170,7 +178,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     )
                 case "boolean":
                     return (
-                        <input value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
+                        <input checked={getBindingOfSetting(setting) ?? ""} value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
                     )
                 case "enum":
                     return (
@@ -258,6 +266,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                 }
                 {
                     currentIndex != simulation.steps.length - 1 &&
+                    <>
                     <button onClick={() => {
                         let nextIndex = currentIndex + 1
                         setCurrentIndex(nextIndex)
@@ -265,6 +274,14 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     }} className="button">
                         Next
                     </button>
+                    <button onClick={() => {
+                        let lastIndex = simulation.steps.length-1
+                        setCurrentIndex(lastIndex)
+                        setCurrentStep(simulation.steps[lastIndex])
+                    }} className="button">
+                        Skip to Run
+                    </button>
+                    </>
                 }
             </div>
         </div>

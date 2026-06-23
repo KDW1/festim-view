@@ -34,22 +34,19 @@ export default function PythonCodeEditor({ pythonCode, evaluatingCode, processin
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.ctrlKey) {
             let key: string = e.key.toLowerCase()
-            switch (key) {
-                case "s":
-                    e.preventDefault()
-                    console.log("Handling Python request")
-                    sendPythonRequest(pythonCode)
-                    break
-                case "e":
-                    e.preventDefault()
-                    setEvaluatingCode(!evaluatingCode)
-                    break
-                case "shift":
-                    e.preventDefault()
-                    setSnippetOnly(!snippetOnly)
-                    break
-
-
+            console.log("Key Pressed was: ", key)
+            if (key == "s") {
+                e.preventDefault()
+                console.log("Handling Python request")
+                sendPythonRequest(pythonCode)
+            } else if (key == "e") {
+                e.preventDefault()
+                setEvaluatingCode(!evaluatingCode)
+            } else if (key == "q") {
+                e.preventDefault()
+                setSnippetOnly(!snippetOnly)
+            } else {
+                return true
             }
         }
     }

@@ -44,6 +44,7 @@ def execute_code():
                 print("There was an error output oh no: ", error_output)
                 return jsonify({
                     "success": False,
+                    "output": output,
                     "error": error_output
                 })
             return jsonify({
@@ -58,7 +59,8 @@ def execute_code():
         except Exception as e:
             return jsonify({
                 "success": False,
-                "error": f"Error: {str(e)}"
+                "output": output,
+                "error": f"Exception: {str(e)}"
             }), 400
     else:
         return jsonify({

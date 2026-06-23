@@ -8,6 +8,7 @@ import TrameVisualizer from "@/components/TrameVisualizer";
 import { customClasses, exampleSimulation, FESTIMSetting, FESTIMSim, FESTIMStep, presetSimulations } from "@/utils/simulations";
 
 // TODO: Need to develop some full fledged context for the Python Code Editor in order to avoid prop drilling
+// TODO: Work on streaming the output form evaluating a FESTIM simulation
 export type Binding = {
   index: number,
   name: string,
@@ -53,7 +54,7 @@ export default function Home() {
         index: i,
         name: step.name ?? step.title,
         snippet: "",
-        values: localStorageBindings ? localStorageBindings[i].values : values,
+        values: localStorageBindings && typeof localStorageBindings != "undefined" ? localStorageBindings[i].values : values,
         recipe: step.recipe ?? ""
       })
     }

@@ -1,5 +1,6 @@
 import warnings
-
+from dolfinx import plot
+import pyvista
 import dolfinx
 import festim as F
 import matplotlib.pyplot as plt
@@ -131,7 +132,6 @@ problem.exports = concentration_field_exports + derived_quantities
 problem.initialise()
 problem.run()
 
-
 # post-processing: we can plot the results using the exports we created.
 
 fig, ax = plt.subplots()
@@ -143,3 +143,17 @@ ax.set_xlabel("Time (s)")
 ax.set_ylabel("Flux (mol/m^2/s) (absolute value)")
 ax.legend()
 plt.show()
+
+hydrogen_concentration = H.post_processing_solution
+topology, cell_types, geometry = plot.vtk_mesh(hydrogen_concentration.function_space)
+u_grid = pyvista.UnstructuredGrid(topology, cell_types, geometry)
+u_grid.point_data["c"] = hydrogen_concentration.x.array.real
+u_grid.set_active_scalars("c")
+u_plotter = pyvista.Plotter()
+u_plotter.add_mesh(u_grid, show_edges=True)
+u_plotter.view_xy()
+
+if not pyvista.OFF_SCREEN:
+    u_plotter.show()
+else:
+    figure = u_plotter.screenshot("concentration.png")

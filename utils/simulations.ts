@@ -811,7 +811,7 @@ $surface_quantities--{*surface_quantity.variable*} = F.{*surface_quantity.quanti
 )$
 $volume_quantities--{*volume_quantity.variable*} = F.{*volume_quantity.quantity_type*}(
   field={*volume_quantity.field_expression*},
-  surface={*volume_quantity.volume_variable*}
+  volume={*volume_quantity.volume_variable*}
 )$
 
 {*derived_export_list_variable*} = [$surface_quantities--{*surface_quantity.variable*}, $$volume_quantities--{*volume_quantity.variable*}, $]

@@ -145,6 +145,8 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
     // FESTIM API Reference for FESTIM classes
     // https://festim.readthedocs.io/en/latest/api/index.html
     const [currentStep, setCurrentStep] = useState(simulation.steps[currentIndex])
+    const [selectingStep, setSelectingStep] = useState(false)
+    const stepNames = simulation.steps.map(s => s.title)
 
     const correspondingField = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
@@ -222,7 +224,24 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
 
     return (
         <div className="text-primary flex flex-1 gap-2 flex-col text-base">
-            <p className="font-semibold">{currentStep.title}</p>
+            {
+                selectingStep ?
+                <select onChange={(e)=>{
+                    let stepIndex = stepNames.indexOf(e.target.value)
+                    setCurrentIndex(stepIndex)
+                    setCurrentStep(simulation.steps[stepIndex])
+                }} name="" id="" className="select-container">
+                    {stepNames.map(step => (
+                        <option key={`stepOption${step}`} value={step} className="select-option">{step}</option>
+                    ))}
+                </select> : 
+                <p onDoubleClick={(e)=>{
+                    setSelectingStep(true)
+                }} className="group">
+                    <span className="font-semibold cursor-pointer">{currentStep.title}</span>
+                    <span className="opacity-0 group-hover:opacity-100 text-sm duration-300 ease-in-out transition-all"> double click to select a step</span>
+                </p>
+            }
             {currentStep.description && <p className="italic text-xs mb-2">{currentStep.description}</p>}
             <div className="gap-4 flex-col flex max-h-72 overflow-y-auto pr-2">
                 {

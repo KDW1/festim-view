@@ -42,6 +42,10 @@ body {
   @apply border-primarybg transition duration-300 focus:border-black border-2 px-4 py-2 rounded-md
 }
 
+.select-option {
+  @apply border-blue-400 border-2
+}
+
 .input {
   @apply mt-1 px-2 py-1 placeholder:italic placeholder:text-sm placeholder-primarybg border-2 border-primarybg transition duration-300 focus:border-black rounded-md
 }

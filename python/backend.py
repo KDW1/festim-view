@@ -1,7 +1,7 @@
 import os
 import json 
 import traceback
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from dotenv import load_dotenv
 import io
 import sys
@@ -19,8 +19,13 @@ def index():
 def execute_code():
     app.logger.info("Received a request to /exec")
     if request.method == "POST":
-        data = request.json
+        data = request.get_json()
         code = data.get("code", "")
+        postprocessing = data.get("postprocessing", "")
+        app.logger.info(data)
+        
+        if postprocessing:
+            app.logger.info("We are post processing (Flask)!")
 
         if not code.strip():
             return jsonify({
@@ -40,17 +45,45 @@ def execute_code():
             output = stdout_capture.getvalue()
             error_output = stderr_capture.getvalue()
             
-            if error_output:
+            if error_output and not postprocessing:
+                # Since for some reason the FESTIM updates are registered as error output
                 print("There was an error output oh no: ", error_output)
                 return jsonify({
                     "success": False,
                     "output": output,
                     "error": error_output
                 })
-            return jsonify({
-                "success": True,
-                "output": output
-            })
+            if not postprocessing:
+                return jsonify({
+                    "success": True,
+                    "output": output
+                })
+            else:
+                if error_output:
+                    app.logger.info("Error output occurred...")
+                    app.logger.info(error_output)
+                filename = "out/field_export.bp"
+                filepath = os.path.join(os.getcwd(), filename)
+                
+                import zipfile
+                import time
+
+                timestr = time.strftime("%Y%m%d-%H%M%S")
+                fileName = "field_export.zip".format(timestr)
+                memory_file = io.BytesIO()
+                
+                with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    for root, dirs, files in os.walk(filepath):
+                        for file in files:
+                            zipf.write(os.path.join(root, file))
+                memory_file.seek(0)
+
+                app.logger.info("Current Working Directory: " + os.getcwd())
+                app.logger.info("Returning .zip file of: " +  filepath)
+
+                # Generate the .zip file
+
+                return send_file(memory_file, download_name=fileName, as_attachment=True)
         except SyntaxError as e:
             return jsonify({
                 "success": False,
@@ -59,7 +92,6 @@ def execute_code():
         except Exception as e:
             return jsonify({
                 "success": False,
-                "output": output,
                 "error": f"Exception: {str(e)}"
             }), 400
     else:

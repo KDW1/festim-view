@@ -1,5 +1,5 @@
 let currentBackend : Backend | null = null
-
+//TODO: Change so that the sendAPIRequest doesn't automatically parse the response into normal text (that way we can be more ambiguous about the file type returned)
 const RETRY_TIME_SECONDS = 0.5
 
 class Backend {
@@ -9,9 +9,9 @@ class Backend {
         this.backendDomain = process.env.BACKEND_DOMAIN as string
     }
 
-    async sendExecRequest(code : string) {
+    async sendExecRequest(code : string, postprocessing : boolean) {
         console.log("Sending execution request...")
-        const data = await this.sendRequest("/exec", "POST", {code})
+        const data = await this.sendRequest("/exec", "POST", {code, postprocessing})
         if(!data.error) {
             return data
         } else {
@@ -82,9 +82,9 @@ const getBackend = async () => {
     return currentBackend
 }
 
-const sendExecRequest = async (code : string) => {
+const sendExecRequest = async (code : string, postprocessing: boolean = false) => {
     const backend = await getBackend()
-    const data = await backend.sendExecRequest(code)
+    const data = await backend.sendExecRequest(code, postprocessing)
     return data
 }
 

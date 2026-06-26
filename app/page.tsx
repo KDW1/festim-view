@@ -24,7 +24,7 @@ export default function Home() {
   const defaultSimulation: FESTIMSim = presetSimulations[0]
 
   let initializedBindings = []
-  let localStorageBindings = [] 
+  let localStorageBindings = []
 
   // Note this method of storing bindings locally will change in the future
   // Since I'm pretty sure this isn't reliable
@@ -250,7 +250,7 @@ export default function Home() {
 
 
   // Python Code Evaluation
-  const sendPythonRequest = async (code?: string) => {
+  const sendPythonRequest = async (code?: string, postprocessing?: boolean) => {
     if (!code) code = pythonCode
     setProcessingCode(true)
     updateArgs([{
@@ -259,49 +259,57 @@ export default function Home() {
     }])
     let apiURL = evaluatingCode ? "/api/eval" : "/api/exec"
     console.log("Code passed in: ", JSON.stringify({ code }))
+    console.log("Post Processing: ", postprocessing)
     try {
-      let data = await fetch(apiURL, {
+      let res = await fetch(apiURL, {
         method: "POST",
         body: JSON.stringify({
-          code
+          code,
+          postprocessing
         }),
         headers: {
           "Content-Type": "application/json"
         }
-      }).then(res => res.json())
+      })
 
-      console.log("Data: ", data)
+      if (!postprocessing) {
+        let data = await res.json()
+        console.log("Data: ", data)
 
-      if (data.error) {
-        updateArgs([{
-          message: data.error,
-          status: "error"
-        }])
-      } else {
-        console.log(`Data from ${apiURL},`, data)
-        if (evaluatingCode) {
+        if (data.error) {
           updateArgs([{
-            message: "Successfully evaluated code...",
-            status: "info"
-          }])
-          updateArgs([{
-            message: data.result,
-            status: "evaluation"
-          }, {
-            message: data.output,
-            status: "output"
-            ,
+            message: data.error,
+            status: "error"
           }])
         } else {
-          updateArgs([{
-            message: "Successfully executed code...",
-            status: "info"
-          }])
-          updateArgs([{
-            message: data.output,
-            status: "output"
-          }])
+          console.log(`Data from ${apiURL},`, data)
+          if (evaluatingCode) {
+            updateArgs([{
+              message: "Successfully evaluated code...",
+              status: "info"
+            }])
+            updateArgs([{
+              message: data.result,
+              status: "evaluation"
+            }, {
+              message: data.output,
+              status: "output"
+              ,
+            }])
+          } else {
+            updateArgs([{
+              message: "Successfully executed code...",
+              status: "info"
+            }])
+            updateArgs([{
+              message: data.output,
+              status: "output"
+            }])
+          }
         }
+      } else {
+        setProcessingCode(false)
+        return res
       }
     } catch (error) {
       const errorMessage = `Failed to send the request Python code snippet to ${apiURL}`
@@ -311,8 +319,8 @@ export default function Home() {
         message: errorMessage,
         status: "error"
       }])
+      setProcessingCode(false)
     }
-    setProcessingCode(false)
 
   }
 

@@ -194,8 +194,13 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     )
                 case "run":
                     return (
-                        <button disabled={processingCode} onClick={(e) => {
-                            sendPythonRequest()
+                        <button disabled={processingCode} onClick={async (e) => {
+                            let data = await sendPythonRequest(null, true)
+                            let blob = await data.blob()
+                            
+                            const downloadURL = URL.createObjectURL(blob)
+                            console.log("Opening up URL: ", downloadURL)
+                            window.open(downloadURL, "_blank")
                         }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
                             Run Code
                         </button>
@@ -226,10 +231,11 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
         <div className="text-primary flex flex-1 gap-2 flex-col text-base">
             {
                 selectingStep ?
-                <select onChange={(e)=>{
+                <select value={stepNames[currentIndex]} onChange={(e)=>{
                     let stepIndex = stepNames.indexOf(e.target.value)
                     setCurrentIndex(stepIndex)
                     setCurrentStep(simulation.steps[stepIndex])
+                    setSelectingStep(false)
                 }} name="" id="" className="select-container">
                     {stepNames.map(step => (
                         <option key={`stepOption${step}`} value={step} className="select-option">{step}</option>
@@ -277,6 +283,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     currentIndex != 0 &&
                     <button onClick={() => {
                         let previousIndex = currentIndex - 1
+                        setSelectingStep(false)
                         setCurrentIndex(previousIndex)
                         setCurrentStep(simulation.steps[previousIndex])
                     }} className="button">
@@ -288,6 +295,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     <>
                     <button onClick={() => {
                         let nextIndex = currentIndex + 1
+                        setSelectingStep(false)
                         setCurrentIndex(nextIndex)
                         setCurrentStep(simulation.steps[nextIndex])
                     }} className="button">
@@ -295,6 +303,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     </button>
                     <button onClick={() => {
                         let lastIndex = simulation.steps.length-1
+                        setSelectingStep(false)
                         setCurrentIndex(lastIndex)
                         setCurrentStep(simulation.steps[lastIndex])
                     }} className="button">

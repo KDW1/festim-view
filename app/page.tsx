@@ -30,7 +30,14 @@ export default function Home() {
   // Since I'm pretty sure this isn't reliable
 
   if (typeof window !== 'undefined' && localStorage.getItem("bindings")) {
-    let objects = JSON.parse(localStorage.getItem("bindings"))
+    let objects
+    try {
+      objects = JSON.parse(localStorage.getItem("bindings"))
+      console.log("Objects: ", objects)
+    } catch (error) {
+      console.log("Error: ", error)
+      objects = null
+    }
     localStorageBindings = objects
   }
   if (defaultSimulation) {
@@ -50,11 +57,13 @@ export default function Home() {
         }
       }
 
+      console.log(localStorageBindings)
+
       initializedBindings.push({
         index: i,
         name: step.name ?? step.title,
         snippet: "",
-        values: localStorageBindings && typeof localStorageBindings != "undefined" ? localStorageBindings[i].values : values,
+        values: localStorageBindings[i] && localStorageBindings[i].values ? localStorageBindings[i].values : values,
         recipe: step.recipe ?? ""
       })
     }

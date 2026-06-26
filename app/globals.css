@@ -51,5 +51,5 @@ body {
 }
 
 .button {
-  @apply px-2 py-1 cursor-pointer disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md
+  @apply px-2 py-1 text-nowrap cursor-pointer disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md
 }

@@ -230,7 +230,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
     }
 
     return (
-        <div className="text-primary flex flex-1 gap-2 flex-col text-base">
+        <div className="text-primary h-4/5 flex flex-1 gap-2 flex-col text-base">
             {
                 selectingStep ?
                     <select value={stepNames[currentIndex]} onChange={(e) => {
@@ -247,11 +247,11 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                         setSelectingStep(true)
                     }} className="group">
                         <span className="font-semibold cursor-pointer">{currentStep.title}</span>
-                        <span className="opacity-0 group-hover:opacity-100 text-sm duration-300 ease-in-out transition-all"> double click to select a step</span>
+                        <span className="hidden opacity-0 group-hover:opacity-100 text-sm duration-300 ease-in-out transition-all"> double click to select a step</span>
                     </p>
             }
             {currentStep.description && <p className="italic text-xs mb-2">{currentStep.description}</p>}
-            <div className="gap-4 flex-col flex max-h-72 overflow-y-auto pr-2">
+            <div className="gap-4 flex-col flex flex-1 overflow-y-auto pr-2">
                 {
                     currentStep.settings.map((setting, i) => (
                         <div key={`setting${i}`} className="flex flex-col">
@@ -266,53 +266,59 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     ))
                 }
             </div>
-            <button onClick={(e) => {
-                e.target.disabled = true
-                localStorage.setItem("bindings", JSON.stringify(bindings))
-                setTimeout(() => (e.target.disabled = false), 750)
-            }} className="button mt-auto">
-                Save Settings
-            </button>
-            <button onClick={(e) => {
-                e.target.disabled = true
-                localStorage.removeItem("bindings")
-                setTimeout(() => (e.target.disabled = false), 750)
-            }} className="button mt-auto">
-                Reset Settings
-            </button>
-            <div className="flex gap-2 mt-auto">
-                {
-                    currentIndex != 0 &&
-                    <button onClick={() => {
-                        let previousIndex = currentIndex - 1
-                        setSelectingStep(false)
-                        setCurrentIndex(previousIndex)
-                        setCurrentStep(simulation.steps[previousIndex])
-                    }} className="button">
-                        Previous
-                    </button>
-                }
-                {
-                    currentIndex != simulation.steps.length - 1 &&
-                    <>
+            <div className="flex flex-col mt-auto space-y-2">
+                <button onClick={(e) => {
+                    e.target.disabled = true
+                    localStorage.setItem("bindings", JSON.stringify(bindings.map((b) => {
+                        return { values: b.values }
+                    })))
+                    setTimeout(() => {
+                        e.target.disabled = false
+                    }, 750)
+                }} className="button mt-auto">
+                    Save Settings
+                </button>
+                <button onClick={(e) => {
+                    e.target.disabled = true
+                    localStorage.removeItem("bindings")
+                    setTimeout(() => (e.target.disabled = false), 750)
+                }} className="button mt-auto">
+                    Reset Settings
+                </button>
+                <div className="flex gap-2 h-min overflow-x-auto mt-auto">
+                    {
+                        currentIndex != 0 &&
                         <button onClick={() => {
-                            let nextIndex = currentIndex + 1
+                            let previousIndex = currentIndex - 1
                             setSelectingStep(false)
-                            setCurrentIndex(nextIndex)
-                            setCurrentStep(simulation.steps[nextIndex])
+                            setCurrentIndex(previousIndex)
+                            setCurrentStep(simulation.steps[previousIndex])
                         }} className="button">
-                            Next
+                            Previous
                         </button>
-                        <button onClick={() => {
-                            let lastIndex = simulation.steps.length - 1
-                            setSelectingStep(false)
-                            setCurrentIndex(lastIndex)
-                            setCurrentStep(simulation.steps[lastIndex])
-                        }} className="button">
-                            Skip to Run
-                        </button>
-                    </>
-                }
+                    }
+                    {
+                        currentIndex != simulation.steps.length - 1 &&
+                        <>
+                            <button onClick={() => {
+                                let nextIndex = currentIndex + 1
+                                setSelectingStep(false)
+                                setCurrentIndex(nextIndex)
+                                setCurrentStep(simulation.steps[nextIndex])
+                            }} className="button">
+                                Next
+                            </button>
+                            <button onClick={() => {
+                                let lastIndex = simulation.steps.length - 1
+                                setSelectingStep(false)
+                                setCurrentIndex(lastIndex)
+                                setCurrentStep(simulation.steps[lastIndex])
+                            }} className="button">
+                                Skip to Run
+                            </button>
+                        </>
+                    }
+                </div>
             </div>
         </div>
     )

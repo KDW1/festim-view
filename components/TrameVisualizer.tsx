@@ -79,7 +79,7 @@ export default function TrameVisualizer({
   return (
     <div className="w-full flex h-full container text-base text-primary">
       <p className="italic text-sm">{simulation ? simulation.title : "Trame Window"}</p>
-      <div className="flex gap-2 text-primary items-center rounded-md">
+      <div className="flex overflow-x-auto gap-2 text-primary items-center rounded-md">
         {
           tabs.map((tab) =>
           (

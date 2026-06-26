@@ -197,10 +197,11 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                         <button disabled={processingCode} onClick={async (e) => {
                             let downloadURL = await sendPythonRequest(null, true)
                             if (downloadURL) {
-                                let a = document.createElement("a")
-                                a.href = downloadURL
-                                a.click()
-                                a.remove()
+                                let link = document.createElement("a")
+                                link.href = downloadURL
+                                link.download = "paraview_exports.zip"
+                                link.click()
+                                link.remove()
                             }
                         }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
                             Run Code and Download .zip File

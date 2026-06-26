@@ -9,23 +9,23 @@ export default function PythonConsole({ args }: { args: ConsoleArg[] }) {
     const argColors: { [key: string]: string } = {
         "info": "text-indigo-700",
         "error": "text-rose-700",
-        "output": "text-amber-500",
-        "evaluation": "text-green-500"
+        "output": "text-indigo-400",
+        "evaluation": "text-green-500",
+        "notification": "text-amber-500"
     }
 
     const getPrefix = (status: string) => {
         switch (status) {
             case "info":
                 return "INFO: "
-                break
             case "error":
                 return "ERROR: "
-                break
             case "output":
                 return "OUTPUT: "
-                break
             case "evaluation":
                 return "RESULT: "
+            case "notification":
+                return "NOTIFICATION: "
         }
     }
 

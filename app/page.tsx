@@ -324,14 +324,14 @@ export default function Home() {
           }
           return
         }
-        
+
         try {
           let blob = await res.blob()
           let downloadURL = URL.createObjectURL(blob)
 
             updateArgs([{
               message: "Sending .zip file",
-              status: "output"
+              status: "notification"
             }])
           setProcessingCode(false)
           return downloadURL

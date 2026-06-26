@@ -62,7 +62,7 @@ def execute_code():
                 if error_output:
                     app.logger.info("Error output occurred...")
                     app.logger.info(error_output)
-                filename = "out/field_export.bp"
+                filename = "out"
                 filepath = os.path.join(os.getcwd(), filename)
                 
                 import zipfile
@@ -71,11 +71,12 @@ def execute_code():
                 timestr = time.strftime("%Y%m%d-%H%M%S")
                 fileName = "field_export.zip".format(timestr)
                 memory_file = io.BytesIO()
-                
+
                 with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
                     for root, dirs, files in os.walk(filepath, topdown=False):
                         for file in files:
-                            zipf.write(os.path.join(filename, file))
+                            indexOfOut = root.index(filename)
+                            zipf.write(os.path.join(root[indexOfOut:], file))
                 memory_file.seek(0)
 
                 app.logger.info("Current Working Directory: " + os.getcwd())

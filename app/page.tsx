@@ -11,6 +11,7 @@ import { customClasses, exampleSimulation, FESTIMSetting, FESTIMSim, FESTIMStep,
 
 export type Binding = {
   index: number,
+  valid: boolean,
   name?: string,
   title: string,
   snippet: string,
@@ -35,7 +36,7 @@ export default function Home() {
     let objects
     try {
       objects = JSON.parse(localStorage.getItem("bindings"))
-      console.log("Objects: ", objects)
+      // console.log("Objects: ", objects)
     } catch (error) {
       console.log("Error: ", error)
       objects = null
@@ -91,7 +92,9 @@ export default function Home() {
     if (DEBUGGING_PARSER) console.log("Parsing with binding: ", indexedBinding)
     let recipe = indexedBinding.recipe
     let modifiedRecipe = recipe
-    // TODO: Add validity check to the recipe parser, this will indicate missing values
+    
+    // We invalidate when a local binding, {**} or $$ is lacking
+    // When a page lacks that value we DON'T double-count
     let valid = true
 
     if (!recipe) return ""
@@ -103,13 +106,10 @@ export default function Home() {
     if (DEBUGGING_PARSER) console.log("Tokens: ", tokenize(recipe))
 
     // Thank you 6.1010 for making us do Symbolic Algebra and LISP Parser
-
     // Special character for variables
     modifiedRecipe = recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--")
-
     // Special character for lists
     modifiedRecipe = modifiedRecipe.replaceAll("$", "--$--")
-
     // Special character for different page variables
     modifiedRecipe = modifiedRecipe.replaceAll("@", "--@--")
 
@@ -148,7 +148,8 @@ export default function Home() {
 
           let expression = tokens.slice(currentIndex, closingIndex).join("")
           let cleanExpression = expression.replaceAll("{*", "{").replaceAll("*}", "}")
-          let value = parseRecipe({ values: selectedBinding.values, recipe: expression })
+          let [value, expressionValid] = parseRecipe({ values: selectedBinding.values, recipe: expression })
+
           // console.log("Clean Expression: ", cleanExpression)
           out.push(value != cleanExpression ? value : `@${pageName}--${expression}@`)
           currentIndex = nextIndex
@@ -160,6 +161,9 @@ export default function Home() {
           let variableName = tokens[currentIndex]
           let valueExists = (variableName in indexedBinding.values && indexedBinding.values[variableName].toString() != "")
           let value = valueExists ? indexedBinding.values[variableName] : `{${variableName}}`
+
+          if(!valueExists) valid = false
+
           out.push(value)
           currentIndex += 2
 
@@ -178,6 +182,8 @@ export default function Home() {
           let nextIndex = closingIndex + 1 // Skip the closing }
 
           if (!arrayExists || indexedBinding.values[arrayName].every((obj: Object) => Object.keys(obj).length == 0)) {
+            valid = false
+
             // In the case that the binding doesn't exist
             out.push("$")
             out.push(arrayName)
@@ -198,7 +204,8 @@ export default function Home() {
           for (let binding of arrayBinding) {
             if (Object.keys(binding).length == 0) continue
 
-            let parsedExpression = parseRecipe({ values: binding, recipe: expression })
+            let [parsedExpression, expressionValid] = parseRecipe({ values: binding, recipe: expression })
+            if(!expressionValid) valid = false
 
             listExpressions.push(parsedExpression)
             let nextCharacter = tokens[nextIndex][0]
@@ -224,19 +231,22 @@ export default function Home() {
 
     let [parsedTokens, next_index] = parse(tokens, 0) as [string[], number]
     if (DEBUGGING_PARSER) console.log("Parsed Recipe: \n", parsedTokens.join(""))
-    return parsedTokens.join("")
+    if(!valid) console.log("This expression is missing some variables...")
+    return [parsedTokens.join(""), valid]
   }
 
   const updateCodeWithIndexedBinding = (indexedBinding: Binding, exclusive: boolean) => {
     if (exclusive) {
-      let parsedRecipe = parseRecipe(indexedBinding)
+      let [parsedRecipe, valid] = parseRecipe(indexedBinding)
       indexedBinding.snippet = parsedRecipe
+      indexedBinding.valid = valid
       setPythonCode(parsedRecipe)
     } else {
       let out = []
       for (let binding of bindings) {
-        let parsedRecipe = parseRecipe(binding)
+        let [parsedRecipe, valid] = parseRecipe(binding)
         binding.snippet = parsedRecipe
+        binding.valid = valid
         if (binding.snippet) out.push(binding.snippet)
       }
       let outString = out.join("\n\n")

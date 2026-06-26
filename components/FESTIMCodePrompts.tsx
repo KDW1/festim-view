@@ -156,11 +156,12 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
     const stepNames = simulation.steps.map(s => s.title)
 
     const validityCheck = (bindings: Binding[]) => {
+        console.log("Bindings: ", bindings)
         let stepsArray = bindings.map(b => ({
-            valid: b.values.valid,
+            valid: b.valid,
             title: b.title
         }))
-        return stepsArray.every(step => step.valid)
+        return [stepsArray, stepsArray.every(step => step.valid)]
     }
 
     const correspondingField = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
@@ -182,9 +183,9 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
             updateBindings(prefix + getBindingName(setting) + suffix, newValue)
 
             // Pay attentition to form validity so we can evaluate this prior to running
-            let form: HTMLFormElement = document.getElementById("formStep")
-            let validity = form.checkValidity()
-            updateBindings("valid", validity)
+            // let form: HTMLFormElement = document.getElementById("formStep")
+            // let validity = form.checkValidity()
+            // updateBindings("valid", validity)
         }
 
         const fieldOfType = (type: string) => {
@@ -216,7 +217,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     return (
                         <button disabled={processingCode} onClick={async (e) => {
                             e.preventDefault()
-                            let allFormsValid = validityCheck(bindings)
+                            let [stepsArray, allFormsValid] = validityCheck(bindings)
                             if (allFormsValid) {
                                 let downloadURL = await sendPythonRequest(null, true)
                                 if (downloadURL) {
@@ -236,7 +237,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
 
                                 setShowAlert(true)
                                 if (unvalidatedSteps.length > threshold) {
-                                    setAlerts([`${stepsArray.length} steps are incomplete!`])
+                                    setAlerts([`${unvalidatedSteps.length} steps are incomplete!`])
                                 } else {
                                     let out = unvalidatedSteps.map(step => `"${step.title}" step is not complete`)
                                     setAlerts(out)
@@ -245,7 +246,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                                 setTimeout(() => {
                                     setShowAlert(false)
                                 }, 3000)
-                                
+
                                 setTimeout(() => {
                                     setAlerts([])
                                 }, 3500);

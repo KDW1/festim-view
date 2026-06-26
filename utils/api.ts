@@ -1,4 +1,4 @@
-let currentBackend : Backend | null = null
+let currentBackend: Backend | null = null
 //TODO: Change so that the sendAPIRequest doesn't automatically parse the response into normal text (that way we can be more ambiguous about the file type returned)
 const RETRY_TIME_SECONDS = 0.5
 
@@ -9,10 +9,10 @@ class Backend {
         this.backendDomain = process.env.BACKEND_DOMAIN as string
     }
 
-    async sendExecRequest(code : string, postprocessing : boolean) {
-        console.log("Sending execution request...")
-        const data = await this.sendRequest("/exec", "POST", {code, postprocessing})
-        if(!data.error) {
+    async sendPostProcessingRequest(code : string, postprocessing : boolean) {
+        console.log("Sending post processing request to execution...")
+        const data = await this.sendRequest("/exec", "POST", { code, postprocessing })
+        if (!data.error) {
             return data
         } else {
             return {
@@ -22,11 +22,24 @@ class Backend {
         }
     }
 
-    async sendEvalRequest(expr : string) {
+    async sendExecRequest(code: string) {
+        console.log("Sending execution request...")
+        const data = await this.sendRequest("/exec", "POST", { code }).then(res => this.convertToJSON(res))
+        if (!data.error) {
+            return data
+        } else {
+            return {
+                success: false,
+                error: data.error
+            }
+        }
+    }
+
+    async sendEvalRequest(expr: string) {
         console.log("Sending evaluation request...")
         console.log("Expression: ", expr)
-        const data = await this.sendRequest("/eval", "POST", {expr})
-        if(!data.error) {
+        const data = await this.sendRequest("/eval", "POST", { expr }).then(res => this.convertToJSON(res))
+        if (!data.error) {
             return data
         } else {
             return {
@@ -36,65 +49,76 @@ class Backend {
         }
     }
 
-    async sendRequest(path : string, method : string = "GET", data : any = null, additionalHeaders : {[key: string]: any} = {}, requestCount : number = 1): Promise<any> {
+    async convertToJSON(res: Response) {
         try {
-            console.log(this.backendDomain+path)
-            let text = await fetch(this.backendDomain+path, {
+            let text = await res.text()
+            let parsedData = JSON.parse(text)
+            return parsedData
+        } catch (error) {
+            return {
+                success: false,
+                failed: true,
+                error: "Failed to successfully parse text into JSON"
+            }
+        }
+    }
+
+    async sendRequest(path: string, method: string = "GET", data: any = null, additionalHeaders: { [key: string]: any } = {}, requestCount: number = 1): Promise<any> {
+        try {
+            console.log(this.backendDomain + path)
+            let res = await fetch(this.backendDomain + path, {
                 method: method,
                 body: JSON.stringify(data),
                 headers: {
                     "Content-Type": "application/json",
                     ...additionalHeaders
                 }
-            }).then(res => res.text())
-            try {
-                let parsedData = JSON.parse(text)
-                console.log(`Data returned from ${this.backendDomain+path} is,`, parsedData)
-                return parsedData
-            } catch (error) {
-                return {
-                    success: false,
-                    failed: true,
-                    error: "Failed to successfully parse text into JSON"
-                }
-            }
+            })
+            return res
         } catch (error) {
             console.log(`Failed to fetch from ${path}, received error: ${error}`)
-            if(requestCount < 3) {
-                setTimeout(async ()=>{
-                    return await this.sendRequest(path, method, data, additionalHeaders, requestCount+1)
-                }, RETRY_TIME_SECONDS*1000)
+            if (requestCount < 3) {
+                setTimeout(async () => {
+                    return await this.sendRequest(path, method, data, additionalHeaders, requestCount + 1)
+                }, RETRY_TIME_SECONDS * 1000)
             } else {
-                return {
+                return Response.json({
                     success: false,
                     failed: true,
                     error: "Failed to successfully send request"
-                }
+                })
             }
         }
     }
 }
 
 const getBackend = async () => {
-    if(!currentBackend) {
+    if (!currentBackend) {
         currentBackend = new Backend()
     }
     return currentBackend
 }
 
-const sendExecRequest = async (code : string, postprocessing: boolean = false) => {
+const sendExecRequest = async (code: string) => {
     const backend = await getBackend()
-    const data = await backend.sendExecRequest(code, postprocessing)
+    const data = await backend.sendExecRequest(code)
     return data
 }
 
-const sendEvalRequest = async (code : string) => {
+const sendEvalRequest = async (code: string) => {
     const backend = await getBackend()
     const data = await backend.sendEvalRequest(code)
     return data
 }
 
+const sendPostProcessingRequest = async(code : string, postprocessing : boolean) => {
+    const backend = await getBackend()
+    const data = await backend.sendPostProcessingRequest(code, postprocessing)
+    return data
+}
+
 export {
     sendExecRequest,
-    sendEvalRequest
+    sendEvalRequest,
+    sendPostProcessingRequest
 }

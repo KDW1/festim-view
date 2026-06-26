@@ -73,9 +73,9 @@ def execute_code():
                 memory_file = io.BytesIO()
                 
                 with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    for root, dirs, files in os.walk(filepath):
+                    for root, dirs, files in os.walk(filepath, topdown=False):
                         for file in files:
-                            zipf.write(os.path.join(root, file))
+                            zipf.write(os.path.join(filename, file))
                 memory_file.seek(0)
 
                 app.logger.info("Current Working Directory: " + os.getcwd())

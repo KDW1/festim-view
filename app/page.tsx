@@ -258,8 +258,6 @@ export default function Home() {
       status: "info"
     }])
     let apiURL = evaluatingCode ? "/api/eval" : "/api/exec"
-    console.log("Code passed in: ", JSON.stringify({ code }))
-    console.log("Post Processing: ", postprocessing)
     try {
       let res = await fetch(apiURL, {
         method: "POST",
@@ -308,8 +306,43 @@ export default function Home() {
           }
         }
       } else {
-        setProcessingCode(false)
-        return res
+        let contentType = res.headers.get("Content-Type")
+        console.log("Content-Type: ", contentType)
+        if (contentType == "application/json") {
+          // Whenever we get a JSON response something has gone wrong...
+          let data = await res.json()
+          if (data.error) {
+            updateArgs([{
+              message: data.error,
+              status: "error"
+            }])
+          } else {
+            updateArgs([{
+              message: "Something went wrong...",
+              status: "error"
+            }])
+          }
+          return
+        }
+        
+        try {
+          let blob = await res.blob()
+          let downloadURL = URL.createObjectURL(blob)
+
+            updateArgs([{
+              message: "Sending .zip file",
+              status: "output"
+            }])
+          setProcessingCode(false)
+          return downloadURL
+        } catch (error) {
+            updateArgs([{
+              message: `Error: ${error}`,
+              status: "error"
+            }])
+          setProcessingCode(false)
+          return null
+        }
       }
     } catch (error) {
       const errorMessage = `Failed to send the request Python code snippet to ${apiURL}`
@@ -319,8 +352,8 @@ export default function Home() {
         message: errorMessage,
         status: "error"
       }])
-      setProcessingCode(false)
     }
+    setProcessingCode(false)
 
   }
 

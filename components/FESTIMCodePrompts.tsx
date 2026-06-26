@@ -156,7 +156,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
             return indexedBinding.values[prefix + getBindingName(setting) + suffix]
         }
         const eventHandler = (e: ChangeEvent<any, any>, setting: FESTIMSetting) => {
-            let inputType = e.target.type 
+            let inputType = e.target.type
             let newValue = ""
             if (inputType == "checkbox") {
                 console.log("Checked Value: ", e.target.checked)
@@ -195,14 +195,15 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                 case "run":
                     return (
                         <button disabled={processingCode} onClick={async (e) => {
-                            let data = await sendPythonRequest(null, true)
-                            let blob = await data.blob()
-                            
-                            const downloadURL = URL.createObjectURL(blob)
-                            console.log("Opening up URL: ", downloadURL)
-                            window.open(downloadURL, "_blank")
+                            let downloadURL = await sendPythonRequest(null, true)
+                            if (downloadURL) {
+                                let a = document.createElement("a")
+                                a.href = downloadURL
+                                a.click()
+                                a.remove()
+                            }
                         }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
-                            Run Code
+                            Run Code and Download .zip File
                         </button>
                     )
                 default:
@@ -231,22 +232,22 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
         <div className="text-primary flex flex-1 gap-2 flex-col text-base">
             {
                 selectingStep ?
-                <select value={stepNames[currentIndex]} onChange={(e)=>{
-                    let stepIndex = stepNames.indexOf(e.target.value)
-                    setCurrentIndex(stepIndex)
-                    setCurrentStep(simulation.steps[stepIndex])
-                    setSelectingStep(false)
-                }} name="" id="" className="select-container">
-                    {stepNames.map(step => (
-                        <option key={`stepOption${step}`} value={step} className="select-option">{step}</option>
-                    ))}
-                </select> : 
-                <p onDoubleClick={(e)=>{
-                    setSelectingStep(true)
-                }} className="group">
-                    <span className="font-semibold cursor-pointer">{currentStep.title}</span>
-                    <span className="opacity-0 group-hover:opacity-100 text-sm duration-300 ease-in-out transition-all"> double click to select a step</span>
-                </p>
+                    <select value={stepNames[currentIndex]} onChange={(e) => {
+                        let stepIndex = stepNames.indexOf(e.target.value)
+                        setCurrentIndex(stepIndex)
+                        setCurrentStep(simulation.steps[stepIndex])
+                        setSelectingStep(false)
+                    }} name="" id="" className="select-container">
+                        {stepNames.map(step => (
+                            <option key={`stepOption${step}`} value={step} className="select-option">{step}</option>
+                        ))}
+                    </select> :
+                    <p onDoubleClick={(e) => {
+                        setSelectingStep(true)
+                    }} className="group">
+                        <span className="font-semibold cursor-pointer">{currentStep.title}</span>
+                        <span className="opacity-0 group-hover:opacity-100 text-sm duration-300 ease-in-out transition-all"> double click to select a step</span>
+                    </p>
             }
             {currentStep.description && <p className="italic text-xs mb-2">{currentStep.description}</p>}
             <div className="gap-4 flex-col flex max-h-72 overflow-y-auto pr-2">
@@ -267,14 +268,14 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
             <button onClick={(e) => {
                 e.target.disabled = true
                 localStorage.setItem("bindings", JSON.stringify(bindings))
-                setTimeout(()=>(e.target.disabled=false), 750)
+                setTimeout(() => (e.target.disabled = false), 750)
             }} className="button mt-auto">
                 Save Settings
             </button>
             <button onClick={(e) => {
                 e.target.disabled = true
                 localStorage.removeItem("bindings")
-                setTimeout(()=>(e.target.disabled=false), 750)
+                setTimeout(() => (e.target.disabled = false), 750)
             }} className="button mt-auto">
                 Reset Settings
             </button>
@@ -293,22 +294,22 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                 {
                     currentIndex != simulation.steps.length - 1 &&
                     <>
-                    <button onClick={() => {
-                        let nextIndex = currentIndex + 1
-                        setSelectingStep(false)
-                        setCurrentIndex(nextIndex)
-                        setCurrentStep(simulation.steps[nextIndex])
-                    }} className="button">
-                        Next
-                    </button>
-                    <button onClick={() => {
-                        let lastIndex = simulation.steps.length-1
-                        setSelectingStep(false)
-                        setCurrentIndex(lastIndex)
-                        setCurrentStep(simulation.steps[lastIndex])
-                    }} className="button">
-                        Skip to Run
-                    </button>
+                        <button onClick={() => {
+                            let nextIndex = currentIndex + 1
+                            setSelectingStep(false)
+                            setCurrentIndex(nextIndex)
+                            setCurrentStep(simulation.steps[nextIndex])
+                        }} className="button">
+                            Next
+                        </button>
+                        <button onClick={() => {
+                            let lastIndex = simulation.steps.length - 1
+                            setSelectingStep(false)
+                            setCurrentIndex(lastIndex)
+                            setCurrentStep(simulation.steps[lastIndex])
+                        }} className="button">
+                            Skip to Run
+                        </button>
                     </>
                 }
             </div>

@@ -15,7 +15,7 @@ type FESTIMCodePromptsProps = {
 const getBindingName = (setting: FESTIMSetting) => {
     return setting.itemName ?? setting.name ?? setting.title
 }
-
+const DEBUGGING_LISTS = false
 function InputList({ processingCode, setting, list, bindings, updateBindings, currentIndex }: { processingCode: boolean, setting: FESTIMSetting, list: any[], bindings: Binding[], updateBindings: Function, currentIndex: number }) {
     const [correspondingList, setCorrespondingList] = useState(list)
 
@@ -25,9 +25,9 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
 
         const getBindingOfSetting = (classSetting: FESTIMSetting) => {
             let list = indexedBinding.values[setting.name]
-            console.log("Indexed Binding: ", indexedBinding)
+            if (DEBUGGING_LISTS) console.log("Indexed Binding: ", indexedBinding)
             let indexedObject = list[index]
-            console.log(`Indexed Object for index ${index}`, indexedObject)
+            if (DEBUGGING_LISTS) console.log(`Indexed Object for index ${index}`, indexedObject)
             let binding = prefix + getBindingName(classSetting) + suffix
             return binding in indexedObject ? indexedObject[binding] : ""
         }
@@ -39,7 +39,7 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
             const inputType = e.target.type
 
             if (inputType == "checkbox") {
-                console.log("Checked Value: ", e.target.checked)
+                if (DEBUGGING_LISTS) console.log("Checked Value: ", e.target.checked)
                 indexedObject[binding] = e.target.checked ? "True" : "False"
             } else {
                 if (e.target.value == "") {
@@ -50,6 +50,10 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
             }
 
             updateBindings(setting.name, list)
+
+            let form: HTMLFormElement = document.getElementById("formStep")
+            let validity = form.checkValidity()
+            updateBindings("valid", validity)
         }
 
         const fieldOfType = (setting: FESTIMSetting) => {
@@ -57,19 +61,19 @@ function InputList({ processingCode, setting, list, bindings, updateBindings, cu
             switch (setting.type) {
                 case "string":
                     return (
-                        <input value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} placeholder="abc..." type="text" className="input" />
+                        <input required={true} value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} placeholder="abc..." type="text" className="input" />
                     )
                 case "number":
                     return (
-                        <input value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} placeholder="0.0" step={0.1} type="number" className="input" />
+                        <input required={true} value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} placeholder="0.0" step={0.1} type="number" className="input" />
                     )
                 case "boolean":
                     return (
-                        <input checked={getBindingOfSetting(setting) ?? ""} value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
+                        <input required={true} checked={getBindingOfSetting(setting) ?? ""} value={getBindingOfSetting(classSetting) ?? ""} key={`item${classSetting.title}${currentIndex}`} onChange={(e) => eventHandler(e, classSetting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
                     )
                 case "enum":
                     return (
-                        <select value={getBindingOfSetting(classSetting) ?? ""} onChange={(e) => eventHandler(e, classSetting)} className="select-container" name="" id="">
+                        <select required={true} value={getBindingOfSetting(classSetting) ?? ""} onChange={(e) => eventHandler(e, classSetting)} className="select-container" name="" id="">
                             <option value={""} className="border-blue-400 border-2" >Select a value</option>
                             {classSetting.options && classSetting.options.map((option, i) => (
                                 <option className="border-blue-400 border-2" value={option} key={`item${classSetting.title}${currentIndex}${option}`}>{option}</option>
@@ -146,7 +150,18 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
     // https://festim.readthedocs.io/en/latest/api/index.html
     const [currentStep, setCurrentStep] = useState(simulation.steps[currentIndex])
     const [selectingStep, setSelectingStep] = useState(false)
+    const [alerts, setAlerts] = useState([""])
+    const [showAlert, setShowAlert] = useState(false)
+
     const stepNames = simulation.steps.map(s => s.title)
+
+    const validityCheck = (bindings: Binding[]) => {
+        let stepsArray = bindings.map(b => ({
+            valid: b.values.valid,
+            title: b.title
+        }))
+        return stepsArray.every(step => step.valid)
+    }
 
     const correspondingField = (setting: FESTIMSetting, prefix: string = "", suffix: string = "") => {
         // The custom binding function is for the case of classes or lists that have different functinos
@@ -165,6 +180,11 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                 newValue = e.target.value
             }
             updateBindings(prefix + getBindingName(setting) + suffix, newValue)
+
+            // Pay attentition to form validity so we can evaluate this prior to running
+            let form: HTMLFormElement = document.getElementById("formStep")
+            let validity = form.checkValidity()
+            updateBindings("valid", validity)
         }
 
         const fieldOfType = (type: string) => {
@@ -172,19 +192,19 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
             switch (setting.type) {
                 case "string":
                     return (
-                        <input value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} placeholder="abc..." type="text" className="input" />
+                        <input required={true} value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} placeholder="abc..." type="text" className="input" />
                     )
                 case "number":
                     return (
-                        <input value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} placeholder="0.0" step={0.1} type="number" className="input" />
+                        <input required={true} value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} placeholder="0.0" step={0.1} type="number" className="input" />
                     )
                 case "boolean":
                     return (
-                        <input checked={getBindingOfSetting(setting) ?? ""} value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
+                        <input required={true} checked={getBindingOfSetting(setting) ?? ""} value={getBindingOfSetting(setting) ?? ""} key={`${prefix}${setting.title}${currentIndex}${suffix}`} onChange={(e) => eventHandler(e, setting)} className="mr-auto w-4 h-auto" type="checkbox" name="" id="" />
                     )
                 case "enum":
                     return (
-                        <select value={getBindingOfSetting(setting) ?? ""} onChange={(e) => eventHandler(e, setting)} className="select-container" name="" id="">
+                        <select required={true} value={getBindingOfSetting(setting) ?? ""} onChange={(e) => eventHandler(e, setting)} className="select-container" name="" id="">
                             <option value={""} className="border-blue-400 border-2" >Select a value</option>
                             {setting.options && setting.options.map((option, i) => (
                                 <option className="border-blue-400 border-2" value={option} key={`${prefix}${setting.title}${option}${suffix}`}>{option}</option>
@@ -195,14 +215,42 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                 case "run":
                     return (
                         <button disabled={processingCode} onClick={async (e) => {
-                            let downloadURL = await sendPythonRequest(null, true)
-                            if (downloadURL) {
-                                let link = document.createElement("a")
-                                link.href = downloadURL
-                                link.download = "paraview_exports.zip"
-                                link.click()
-                                link.remove()
+                            e.preventDefault()
+                            let allFormsValid = validityCheck(bindings)
+                            if (allFormsValid) {
+                                let downloadURL = await sendPythonRequest(null, true)
+                                if (downloadURL) {
+                                    let link = document.createElement("a")
+                                    link.href = downloadURL
+                                    link.download = "paraview_exports.zip"
+                                    link.click()
+                                    link.remove()
+                                }
+                            } else {
+                                let threshold = 4
+                                let unvalidatedSteps = []
+
+                                for (let step of stepsArray) {
+                                    if (!step.valid) unvalidatedSteps.push(step)
+                                }
+
+                                setShowAlert(true)
+                                if (unvalidatedSteps.length > threshold) {
+                                    setAlerts([`${stepsArray.length} steps are incomplete!`])
+                                } else {
+                                    let out = unvalidatedSteps.map(step => `"${step.title}" step is not complete`)
+                                    setAlerts(out)
+                                }
+
+                                setTimeout(() => {
+                                    setShowAlert(false)
+                                }, 3000)
+                                
+                                setTimeout(() => {
+                                    setAlerts([])
+                                }, 3500);
                             }
+                            console.log(bindings)
                         }} className={`px-2 py-1 cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-300 hover:bg-primarybg duration-300 ease-in-out transition bg-lightbg rounded-md`}>
                             Run Code and Download .zip File
                         </button>
@@ -229,15 +277,19 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
         return fieldOfType(setting.type)
     }
 
+    const changeToStep = (stepIndex: number) => {
+        setCurrentIndex(stepIndex)
+        setCurrentStep(simulation.steps[stepIndex])
+        setSelectingStep(false)
+    }
+
     return (
-        <div className="text-primary h-4/5 flex flex-1 gap-2 flex-col text-base">
+        <div className="text-primary h-4/5 overflow-y-auto flex flex-1 gap-2 flex-col text-base">
             {
                 selectingStep ?
                     <select value={stepNames[currentIndex]} onChange={(e) => {
-                        let stepIndex = stepNames.indexOf(e.target.value)
-                        setCurrentIndex(stepIndex)
-                        setCurrentStep(simulation.steps[stepIndex])
-                        setSelectingStep(false)
+                        let selectIndex = stepNames.indexOf(e.target.value)
+                        changeToStep(selectIndex)
                     }} name="" id="" className="select-container">
                         {stepNames.map(step => (
                             <option key={`stepOption${step}`} value={step} className="select-option">{step}</option>
@@ -247,11 +299,11 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                         setSelectingStep(true)
                     }} className="group">
                         <span className="font-semibold cursor-pointer">{currentStep.title}</span>
-                        <span className="hidden opacity-0 group-hover:opacity-100 text-sm duration-300 ease-in-out transition-all"> double click to select a step</span>
+                        <span className="opacity-0 group-hover:opacity-100 text-xs duration-300 ease-in-out transition-all"> double click to select a step</span>
                     </p>
             }
             {currentStep.description && <p className="italic text-xs mb-2">{currentStep.description}</p>}
-            <div className="gap-4 flex-col flex flex-1 overflow-y-auto pr-2">
+            <form id="formStep" className="gap-4 min-h-20 flex-col flex flex-1 overflow-y-auto pr-2">
                 {
                     currentStep.settings.map((setting, i) => (
                         <div key={`setting${i}`} className="flex flex-col">
@@ -265,7 +317,8 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                         </div>
                     ))
                 }
-            </div>
+            </form>
+            <p className={`text-sm text-rose-600 transition-all duration-300 ease-in-out ${showAlert ? "opacity-100" : "opacity-0"}`}>{alerts.map(alert => <>{alert} <br /></>)}</p>
             <div className="flex flex-col mt-auto space-y-2">
                 <button onClick={(e) => {
                     e.target.disabled = true
@@ -290,9 +343,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                         currentIndex != 0 &&
                         <button onClick={() => {
                             let previousIndex = currentIndex - 1
-                            setSelectingStep(false)
-                            setCurrentIndex(previousIndex)
-                            setCurrentStep(simulation.steps[previousIndex])
+                            changeToStep(previousIndex)
                         }} className="button">
                             Previous
                         </button>
@@ -302,17 +353,13 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                         <>
                             <button onClick={() => {
                                 let nextIndex = currentIndex + 1
-                                setSelectingStep(false)
-                                setCurrentIndex(nextIndex)
-                                setCurrentStep(simulation.steps[nextIndex])
+                                changeToStep(nextIndex)
                             }} className="button">
                                 Next
                             </button>
                             <button onClick={() => {
                                 let lastIndex = simulation.steps.length - 1
-                                setSelectingStep(false)
-                                setCurrentIndex(lastIndex)
-                                setCurrentStep(simulation.steps[lastIndex])
+                                changeToStep(lastIndex)
                             }} className="button">
                                 Skip to Run
                             </button>

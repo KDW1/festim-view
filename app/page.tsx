@@ -8,10 +8,11 @@ import TrameVisualizer from "@/components/TrameVisualizer";
 import { customClasses, exampleSimulation, FESTIMSetting, FESTIMSim, FESTIMStep, presetSimulations } from "@/utils/simulations";
 
 // TODO: Need to develop some full fledged context for the Python Code Editor in order to avoid prop drilling
-// TODO: Work on streaming the output form evaluating a FESTIM simulation
+
 export type Binding = {
   index: number,
-  name: string,
+  name?: string,
+  title: string,
   snippet: string,
   values: {
     [key: string]: any
@@ -19,6 +20,7 @@ export type Binding = {
   recipe?: string
 }
 
+const DEBUGGING_PARSER = false
 
 export default function Home() {
   const defaultSimulation: FESTIMSim = presetSimulations[0]
@@ -44,26 +46,23 @@ export default function Home() {
     for (let i = 0; i < defaultSimulation.steps.length; i++) {
       let step: FESTIMStep = defaultSimulation.steps[i]
       let values: { [key: string]: any } = {}
-
-      if (!localStorageBindings) {
-        // We initialize the values
-        for (let setting of step.settings) {
-          let binding = setting.name ?? setting.title
-          if (setting.defaultValue) {
-            values[binding] = setting.defaultValue
-          } else {
-            values[binding] = setting.list ? [{}] : ""
-          }
+      let storedBinding = localStorageBindings[i]
+      // We initialize the values
+      for (let setting of step.settings) {
+        let binding = setting.name ?? setting.title
+        if (setting.defaultValue || (storedBinding && binding in storedBinding.values)) {
+          values[binding] = setting.defaultValue ?? storedBinding.values[binding]
+        } else {
+          values[binding] = setting.list ? [{}] : ""
         }
       }
 
-      console.log(localStorageBindings)
-
       initializedBindings.push({
         index: i,
-        name: step.name ?? step.title,
+        name: step.name,
+        title: step.title,
         snippet: "",
-        values: localStorageBindings[i] && localStorageBindings[i].values ? localStorageBindings[i].values : values,
+        values,
         recipe: step.recipe ?? ""
       })
     }
@@ -89,16 +88,19 @@ export default function Home() {
   }
 
   const parseRecipe = (indexedBinding: { values: { [key: string]: any }, recipe: string }) => {
-    console.log("Parsing with binding: ", indexedBinding)
+    if (DEBUGGING_PARSER) console.log("Parsing with binding: ", indexedBinding)
     let recipe = indexedBinding.recipe
     let modifiedRecipe = recipe
+    // TODO: Add validity check to the recipe parser, this will indicate missing values
+    let valid = true
+
     if (!recipe) return ""
 
     const tokenize = (recipe: string) => {
       return recipe.replaceAll("{*", "--{*--").replaceAll("*}", "--*}--").replaceAll("$", "--$--").replaceAll(/--{2,}/g, "--").split("--")
     }
 
-    console.log("Tokens: ", tokenize(recipe))
+    if (DEBUGGING_PARSER) console.log("Tokens: ", tokenize(recipe))
 
     // Thank you 6.1010 for making us do Symbolic Algebra and LISP Parser
 
@@ -132,14 +134,14 @@ export default function Home() {
 
           if (!selectedBinding) {
             // In the case that the binding doesn't exist
-            console.log("Page doesn't exist")
+            if (DEBUGGING_PARSER) console.log("Page doesn't exist")
             out.push("@")
             out.push(pageName)
             out.push("--")
             const expression = tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}")
             out.push(expression)
             out.push("@")
-            console.log(`Encountered step variable, form: @${pageName}--${expression}@`)
+            if (DEBUGGING_PARSER) console.log(`Encountered step variable, form: @${pageName}--${expression}@`)
             currentIndex = nextIndex
             continue
           }
@@ -150,7 +152,7 @@ export default function Home() {
           // console.log("Clean Expression: ", cleanExpression)
           out.push(value != cleanExpression ? value : `@${pageName}--${expression}@`)
           currentIndex = nextIndex
-          console.log(`Encountered step variable, form: @${pageName}--${expression}@`)
+          if (DEBUGGING_PARSER) console.log(`Encountered step variable, form: @${pageName}--${expression}@`)
 
         } else if (token == "{*") {
           // We have "{*" + variableName + "*}"
@@ -161,7 +163,7 @@ export default function Home() {
           out.push(value)
           currentIndex += 2
 
-          console.log(`Encountered variable form: {${variableName}}`)
+          if (DEBUGGING_PARSER) console.log(`Encountered variable form: {${variableName}}`)
         } else if (token == "$") {
           // We have "$" + binding + expression + "$"
           // x being the separator
@@ -183,7 +185,7 @@ export default function Home() {
             const expression = tokens.slice(currentIndex, closingIndex).join("").replaceAll("{*", "{").replaceAll("*}", "}")
             out.push(expression)
             out.push("$")
-            console.log(`Encountered list form: $${arrayName}--${expression}$`)
+            if (DEBUGGING_PARSER) console.log(`Encountered list form: $${arrayName}--${expression}$`)
             currentIndex = nextIndex
             continue
           }
@@ -210,7 +212,7 @@ export default function Home() {
           out = out.concat(listExpressions)
           currentIndex = nextIndex
 
-          console.log(`Encountered list form: $${arrayName}--${expression}$`)
+          if (DEBUGGING_PARSER) console.log(`Encountered list form: $${arrayName}--${expression}$`)
         } else {
           out.push(token)
           currentIndex += 1
@@ -221,7 +223,7 @@ export default function Home() {
     }
 
     let [parsedTokens, next_index] = parse(tokens, 0) as [string[], number]
-    console.log("Parsed Recipe: \n", parsedTokens.join(""))
+    if (DEBUGGING_PARSER) console.log("Parsed Recipe: \n", parsedTokens.join(""))
     return parsedTokens.join("")
   }
 
@@ -262,10 +264,17 @@ export default function Home() {
   const sendPythonRequest = async (code?: string, postprocessing?: boolean) => {
     if (!code) code = pythonCode
     setProcessingCode(true)
-    updateArgs([{
-      message: evaluatingCode ? "Evaluating your expression..." : "Executing code...",
-      status: "info"
-    }])
+    if (!postprocessing) {
+      updateArgs([{
+        message: evaluatingCode ? "Evaluating your expression..." : "Executing code...",
+        status: "info"
+      }])
+    } else {
+      updateArgs([{
+        message: "Preparing export file...",
+        status: "notification"
+      }])
+    }
     let apiURL = evaluatingCode ? "/api/eval" : "/api/exec"
     try {
       let res = await fetch(apiURL, {
@@ -338,17 +347,17 @@ export default function Home() {
           let blob = await res.blob()
           let downloadURL = URL.createObjectURL(blob)
 
-            updateArgs([{
-              message: "Sending .zip file",
-              status: "notification"
-            }])
+          updateArgs([{
+            message: "Sending .zip file",
+            status: "notification"
+          }])
           setProcessingCode(false)
           return downloadURL
         } catch (error) {
-            updateArgs([{
-              message: `Error: ${error}`,
-              status: "error"
-            }])
+          updateArgs([{
+            message: `Error: ${error}`,
+            status: "error"
+          }])
           setProcessingCode(false)
           return null
         }

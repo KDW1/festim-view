@@ -104,7 +104,6 @@ export default function PythonCodeEditor({ pythonCode, evaluatingCode, processin
                         readOnly: mode == "festim",
                         wordWrap: "on"
                     }}
-                    // TODO: Fix the onChange error where if you select and delete code it doesnt deleteW
                     onChange={(val: string | undefined) => {
                         if (!val) return
                         updatePythonCode(val)

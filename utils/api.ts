@@ -1,5 +1,5 @@
 let currentBackend: Backend | null = null
-//TODO: Change so that the sendAPIRequest doesn't automatically parse the response into normal text (that way we can be more ambiguous about the file type returned)
+
 const RETRY_TIME_SECONDS = 0.5
 
 class Backend {

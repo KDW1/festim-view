@@ -319,7 +319,7 @@ export default function FESTIMCodePrompts({ simulation, processingCode, sendPyth
                     ))
                 }
             </form>
-            <p className={`text-sm text-rose-600 transition-all duration-300 ease-in-out ${showAlert ? "opacity-100" : "opacity-0"}`}>{alerts.map(alert => <>{alert} <br /></>)}</p>
+            <p className={`text-sm text-rose-600 transition-all duration-300 ease-in-out ${showAlert ? "opacity-100" : "opacity-0"}`}>{alerts.map((alert, i) => <span key={`span${i}`}>{alert} <br /></span>)}</p>
             <div className="flex flex-col mt-auto space-y-2">
                 <button onClick={(e) => {
                     e.target.disabled = true

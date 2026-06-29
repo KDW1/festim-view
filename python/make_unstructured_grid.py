@@ -42,7 +42,10 @@ def create_single_pyramid(x_offset=0.0, y_offset=0.0, z_offset=0.0):
 
 points, pyramid, ugrid = create_single_pyramid()
 
-writer = vtk.vtkXMLUnstructuredGridWriter()
-writer.SetInputDataObject(ugrid)
-writer.SetFileName(os.path.join(os.getcwd(),"out/vtk/pyramid.vtu"))
-writer.Write()
+def write_down_ugrid(ugrid, filepath):
+    writer = vtk.vtkXMLUnstructuredGridWriter()
+    writer.SetInputDataObject(ugrid)
+    writer.SetFileName(os.path.join(os.getcwd(), filepath))
+    writer.Write()
+    
+write_down_ugrid(ugrid, "out/vtk/pyramid.vtu")

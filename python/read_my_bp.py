@@ -3,11 +3,15 @@ import vtk
 import adios2
 import vtk
 import math
+from make_unstructured_grid import write_down_ugrid
 
 filepath = os.path.join(os.getcwd(), "out/field_export.bp")
 print(filepath)
 
 points = vtk.vtkPoints()
+types, pointIds = list(), list()
+
+SCALAR_FIELD_NAME = "SyntheticField"
 
 with adios2.FileReader(filepath) as s:
     # inspect variables
@@ -27,10 +31,28 @@ with adios2.FileReader(filepath) as s:
         if variable_of_interest == "geometry":
             for point in data_of_interest:
                 points.InsertNextPoint(point)
+        if variable_of_interest == "types":
+            types = data_of_interest.tolist()
+        if variable_of_interest == "vtkOriginalPointIds":
+            pointIds = data_of_interest.tolist()
 
+# The types and pointIds are parallel arrays
 print("All points: ", points)
 ugrid = vtk.vtkUnstructuredGrid()
 ugrid.SetPoints(points)
+lagrange_triangle = vtk.vtkLagrangeTriangle()
+
+lagrange_triangle.GetPointIds().SetNumberOfIds(len(pointIds))
+
+for i, pointId in enumerate(pointIds):
+    lagrange_triangle.GetPointIds().SetId(i, pointId[0])
+    
+lagrange_triangle = vtk.vtkLagrangeTriangle()
+ugrid.InsertNextCell(lagrange_triangle.GetCellType(), lagrange_triangle.GetPointIds())
+
+print("Types: ", types)
+print("Point IDs: ", pointIds)
+# ugrid.InsertNextCell(types, pointIds)
 
 # Function from Adam Djellouli's https://github.com/djeada/Vtk-Examples/tree/main
 def add_point_scalars(dataset, name=SCALAR_FIELD_NAME):
@@ -48,3 +70,5 @@ def add_point_scalars(dataset, name=SCALAR_FIELD_NAME):
     dataset.GetPointData().SetScalars(scalars)
     
 add_point_scalars(ugrid)
+
+write_down_ugrid(ugrid, "out/vtk/generatedGrid.vtu")

@@ -46,9 +46,9 @@ class StateLoaderApp(TrameApp):
 
     def load_data(self, **_kwargs):
         # CLI
-        filepath = os.path.join(os.getcwd(), "out/vtk/pyramid.vtu")
+        args, _ = self.server.cli.parse_known_args()
+        filepath = os.path.join(os.getcwd(), str(args.data))
         reader  = simple.XMLUnstructuredGridReader(FileName=filepath)
-        print("Reader Point Arrays: ", reader.PointArrays().)
         # reader.SetFileName(filepath)
         # reader.Update()
         

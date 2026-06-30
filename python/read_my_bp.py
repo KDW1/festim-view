@@ -40,7 +40,7 @@ def read_bp_file_to(input_filepath, output_filepath):
         for variable_of_interest in vars:
             steps = int(vars[variable_of_interest]["AvailableStepsCount"])
             data_of_interest = s.read(variable_of_interest, [0, steps])
-            relevant_values[variable_of_interest] = data_of_interest.tolist()
+            relevant_values[variable_of_interest] = data_of_interest
             print(f"Data of interest, {variable_of_interest}\n", data_of_interest.tolist())
             if variable_of_interest == "geometry":
                 for point in data_of_interest:
@@ -63,22 +63,23 @@ def read_bp_file_to(input_filepath, output_filepath):
         ugrid.InsertNextCell(lagrange_triangle.GetCellType(), lagrange_triangle.GetPointIds())
 
     # (Modified Function) from Adam Djellouli's https://github.com/djeada/Vtk-Examples/tree/main
-    def add_point_scalars(dataset, name=SCALAR_FIELD_NAME):
-        """Attach a synthetic point scalar field so datasets render with meaningful coloring."""
-        scalars = vtk.vtkFloatArray()
-        scalars.SetName("emmpty_trap_1")
-
-        for value in relevant_values["empty_trap_1"]:
-            # x, y, z = dataset.GetPoint(point_id)
-            # value = 
-            scalars.InsertNextValue(value[0])
-
-        dataset.GetPointData().SetScalars(scalars)
+    def add_relevant_point_data(dataset):
+        fields = ["H_1", "H_trapped_1", "empty_trap_1"]
+        for field in fields:
+            float_array = vtk.vtkFloatArray()
+            float_array.SetName(field)
+            
+            for value in relevant_values[field]:
+                print(value[0])
+                float_array.InsertNextValue(value[0])
+                
+            dataset.GetPointData().AddArray(float_array)
         
-    add_point_scalars(ugrid)
+    add_relevant_point_data(ugrid)
 
     write_down_ugrid(ugrid, output_filepath)
     return relevant_values
     
 relevant_values = read_bp_file_to("out/field_export.bp", "out/vtk/generatedGrid.vtu")
 print("Relevant Values' Keys: ", relevant_values.keys())
+print(len(relevant_values["vtkGhostType"]))

@@ -20,54 +20,9 @@ from vtkmodules.util.numpy_support import vtk_to_numpy
 # TODO: Learn how to incorporate the field data
 
 input_filepath = os.path.join(os.getcwd(), "out/field_export.bp")
-print(input_filepath)
+# print(input_filepath)
 
-def read_bp_file_to(input_filepath, output_filepath):
-    points = vtk.vtkPoints()
-    relevant_values = dict()
-    variable_information = dict()
-
-    SCALAR_FIELD_NAME = "SyntheticField"
-
-    with adios2.FileReader(input_filepath) as s:
-        # inspect variables
-        vars = s.available_variables()
-        attributes = s.available_attributes()
-        # print("Variable Name: ", vars)
-        for name, info in vars.items():
-            print("\nvariable_name: " + name, end=" ")
-            obj = dict()
-            for key, value in info.items():
-                obj[key] = value
-                print("\t" + key + ": " + value, end=" ")
-            variable_information[name] = obj
-        print("Attribute Keys: ", attributes.keys())
-        xml_root = attributes["vtk.xml"]
-        print(f"\nThe XML Root is\n", xml_root)
-        for variable_of_interest in vars:
-            steps = int(vars[variable_of_interest]["AvailableStepsCount"])
-            data_of_interest = s.read(variable_of_interest, [0, steps])
-            relevant_values[variable_of_interest] = data_of_interest
-            print(f"Data of interest, {variable_of_interest}\n", data_of_interest.tolist())
-            if variable_of_interest == "geometry":
-                for point in data_of_interest:
-                    points.InsertNextPoint(point)
-
-    # The types and pointIds are parallel arrays
-    print("All points: ", points)
-    print("Connectivity count: ", len(relevant_values["connectivity"]))
-    ugrid = vtk.vtkUnstructuredGrid()
-    ugrid.SetPoints(points)
-
-    for _, pId1, pId2, pId3 in relevant_values["connectivity"]:
-        lagrange_triangle = vtk.vtkLagrangeTriangle()
-        lagrange_triangle.GetPointIds().InsertNextId(pId1)
-        lagrange_triangle.GetPointIds().InsertNextId(pId2)
-        lagrange_triangle.GetPointIds().InsertNextId(pId3)
-        ugrid.InsertNextCell(lagrange_triangle.GetCellType(), lagrange_triangle.GetPointIds())
-
-    # (Modified Function) from Adam Djellouli's https://github.com/djeada/Vtk-Examples/tree/main
-    def add_relevant_point_data(dataset):
+def add_relevant_point_data(dataset):
         fields = ["H_1", "H_trapped_1", "empty_trap_1"]
         for field in fields:
             float_array = vtk.vtkFloatArray()
@@ -79,6 +34,69 @@ def read_bp_file_to(input_filepath, output_filepath):
             dataset.GetPointData().AddArray(float_array)
         
         # add_time_info_to(dataset)
+    
+def add_cells_to_dataset(dataset, connectivity):
+    for _, pId1, pId2, pId3 in relevant_values["connectivity"]:
+        lagrange_triangle = vtk.vtkLagrangeTriangle()
+        lagrange_triangle.GetPointIds().InsertNextId(pId1)
+        lagrange_triangle.GetPointIds().InsertNextId(pId2)
+        lagrange_triangle.GetPointIds().InsertNextId(pId3)
+        dataset.InsertNextCell(lagrange_triangle.GetCellType(), lagrange_triangle.GetPointIds())
+    
+def read_bp_file_to(input_filepath, output_filepath):
+    points = vtk.vtkPoints()
+    timestamps = list()
+    variable_information = dict()
+
+    SCALAR_FIELD_NAME = "SyntheticField"
+    DEBUGGING = True
+    with adios2.FileReader(input_filepath) as s:
+        relevant_values = dict()
+        # inspect variables
+        vars = s.available_variables()
+        attributes = s.available_attributes()
+        # print("Variable Name: ", vars)
+        for name, info in vars.items():
+            if DEBUGGING: print("\nvariable_name: " + name, end=" ")
+            obj = dict()
+            for key, value in info.items():
+                obj[key] = value
+                print("\t" + key + ": " + value, end=" ")
+            variable_information[name] = obj
+        if DEBUGGING: print("Attribute Keys: ", attributes.keys())
+        xml_root = attributes["vtk.xml"]
+        if DEBUGGING: print(f"\nThe XML Root is\n", xml_root)
+        interval_count = int(vars["step"]["AvailableStepsCount"])
+        time_step = float(min(s.read("step", step_selection=[0, interval_count])))
+        print("Time step: ", time_step)
+        for step in range(interval_count):
+            variables_dictionary = dict()
+            for variable_of_interest in vars:
+                steps = int(vars[variable_of_interest]["AvailableStepsCount"])
+                data_of_interest = s.read(variable_of_interest, step_selection=[step, 1])
+                variables_dictionary[variable_of_interest] = data_of_interest.tolist()
+                print(f"Data of interest, {variable_of_interest}\n", data_of_interest.tolist())
+                if variable_of_interest == "geometry":
+                    for point in data_of_interest:
+                        points.InsertNextPoint(point)
+            timestamps.append({
+                "time": time_step+time_step*step,
+                "values": variables_dictionary})
+        # timestamps[current_time] = relevant_values
+                        
+    print("DONE STREAMING!")
+    print(timestamps[len(timestamps)-1])
+    
+    ugrid = vtk.vtkUnstructuredGrid()
+    ugrid.SetPoints(points)
+    
+    add_cells_to_dataset(ugrid, relevant_values["connectivity"])
+        
+
+    # (Modified Function) from Adam Djellouli's https://github.com/djeada/Vtk-Examples/tree/main
+    
+    # XML format is differnet in that we need to have point data for each time step or something
+    # example: https://vtk.org/files/ExternalData/SHA512/2fa0dec5c2c558dc49b037f3f1a0e18966e4411ca389bba32990b9ce10c2dbfd406d98da867b3beb3151135c4e990a4c0229aef68ef4b1570bda4e856e7b13dd
     
     # def add_time_info_to(dataset):
     #     # Based off of the process RequestInformation(...) from https://gitlab.kitware.com/vtk/vtk/-/blob/master/IO/ADIOS2/vtkADIOS2VTXReader.cxx?ref_type=heads
@@ -106,6 +124,8 @@ def read_bp_file_to(input_filepath, output_filepath):
     write_down_ugrid(ugrid, output_filepath)
     return relevant_values, variable_information
     
+
+# 2. Execute code AFTER the stream is finished
 relevant_values, relevant_vars = read_bp_file_to("out/field_export.bp", "out/vtk/generatedGrid.vtu")
 # print("Relevant Values' Keys: ", relevant_values.keys())
 # print("Relevant Variables' Keys: ", relevant_vars)

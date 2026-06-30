@@ -26,7 +26,7 @@ get_or_create_eventloop()
 # Trame setup
 # -----------------------------------------------------------------------------
 
-class StateLoaderApp(TrameApp):
+class VTUFileReaderApp(TrameApp):
 
     def __init__(self, server=None):
         super().__init__(server)
@@ -89,7 +89,7 @@ class StateLoaderApp(TrameApp):
 # -----------------------------------------------------------------------------
 
 def main():
-    app = StateLoaderApp()
+    app = VTUFileReaderApp()
     app.server.start()
 
 if __name__ == "__main__":

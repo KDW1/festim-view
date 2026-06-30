@@ -41,7 +41,7 @@ def create_single_pyramid(x_offset=0.0, y_offset=0.0, z_offset=0.0):
 
 
 points, pyramid, ugrid = create_single_pyramid()
-
+print(pyramid.GetPointIds())
 def write_down_ugrid(ugrid, filepath):
     writer = vtk.vtkXMLUnstructuredGridWriter()
     writer.SetInputDataObject(ugrid)

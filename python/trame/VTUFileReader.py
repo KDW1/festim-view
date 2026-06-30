@@ -42,16 +42,37 @@ class VTUFileReaderApp(TrameApp):
 # -----------------------------------------------------------------------------
 # ParaView code
 # -----------------------------------------------------------------------------
-
+    def animate_forward(self):
+        print("Animate forward...")
+        print("Times: ", self.animationScene.TimeKeeper.TimestepValues)
+        print(self.animationScene)
+        print(self.animationScene.AnimationTime)
+        self.animationScene.GoToNext()
+        self.ctrl.view_update()
+        
+    
+    def animate_backward(self):
+        print("Animate backward...")
+        self.animationScene.GoToNext()
+        self.ctrl.view_update()
 
     def load_data(self, **_kwargs):
         # CLI
         args, _ = self.server.cli.parse_known_args()
         filepath = os.path.join(os.getcwd(), str(args.data))
         self.reader  = simple.XMLUnstructuredGridReader(FileName=filepath)
+        print(self.reader.PointArrayStatus)
         self.fields = self.reader.PointArrayStatus
+        print("Associated fields: ", self.fields)
+        
         self.state.field_option = "Solid"
         self.state.field_options = ("Solid", *self.fields)
+        self.animationScene = simple.GetAnimationScene()
+        self.animationScene.UpdateAnimationUsingDataTimeSteps()
+        
+        print("Animation time (before): ", self.animationScene.AnimationTime)
+        # self.animationScene.AnimationTime = 0.05
+        print("Animation time (after): ", self.animationScene.AnimationTime)
         
         self.representation= simple.Show(self.reader)
         simple.ColorBy(self.representation, ("POINTS", "Solid"))
@@ -64,6 +85,14 @@ class VTUFileReaderApp(TrameApp):
             self.ui.icon.click = self.ctrl.view_reset_camera
             self.ui.title.set_text("ParaView State Viewer")
             with self.ui.toolbar:
+                v3.VBtn(
+                    icon="mdi-step-backward",
+                    click=self.animate_backward # <-- Use that reset_camera (init order does not matter)
+                )
+                v3.VBtn(
+                    icon="mdi-step-forward",
+                    click=self.animate_forward # <-- Use that reset_camera (init order does not matter)
+                )
                 v3.VSelect(
                     label="Choose an Option",
                     v_model=("field_option", "Solid"), # Binds to state variable
@@ -96,8 +125,7 @@ class VTUFileReaderApp(TrameApp):
     def on_field_option_change(self, field_option, **_kwargs):
         self.representation= simple.Show(self.reader)
         simple.ColorBy(self.representation, ("POINTS", field_option))
-        
-        
+        self.ctrl.view_update()
         print("Switching field option to ", field_option)
 # -----------------------------------------------------------------------------
 # Main

@@ -31,6 +31,7 @@ class VTUFileReaderApp(TrameApp):
     def __init__(self, server=None):
         super().__init__(server)
         self.server.cli.add_argument("--data", help="Path to state file", dest="data")
+        self.playing = False
 
         # Preload paraview modules onto server
         paraview.initialize(self.server)
@@ -42,27 +43,93 @@ class VTUFileReaderApp(TrameApp):
 # -----------------------------------------------------------------------------
 # ParaView code
 # -----------------------------------------------------------------------------
-    def animate_forward(self):
-        print("Animate forward...")
-        print("Times: ", self.animationScene.TimeKeeper.TimestepValues)
-        print(self.animationScene)
-        print(self.animationScene.AnimationTime)
-        self.animationScene.GoToNext()
+    INTERVAL = 0.02
+    def to_next_frame(self):
+        if self.field_option == "Solid": return
+        if self.playing:
+            return
+        print("To next frame")
+        print(f"(Before) t={self.animationScene.AnimationTime}")
+        steps = self.animationScene.TimeKeeper.TimestepValues
+        max_time, min_time = max(steps), min(steps)
+        current_time = self.animationScene.AnimationTime
+        new_time = current_time + min_time
+        
+        if new_time <= max_time:
+            self.animationScene.AnimationTime = new_time
+            self.ctrl.view_update()
+            
+        print(f"(After) t={self.animationScene.AnimationTime}")
         self.ctrl.view_update()
         
-    async def animate_play(self):
-        for step in self.animationScene.TimeKeeper.TimestepValues:
-            print("Current Step: ", step)
-            self.animationScene.AnimationTime = step
-            self.ctrl.view_update()
-            FRAME_INTERVAL = 0.05
-            await asyncio.sleep(FRAME_INTERVAL)
+    async def play_animation(self):
+        if self.field_option == "Solid": return
+        if not self.playing:
+            self.playing = True
+            for step in self.animationScene.TimeKeeper.TimestepValues:
+                print(f"On step: {step}")
+                self.animationScene.AnimationTime = step
+                self.ctrl.view_update()
+                await asyncio.sleep(self.INTERVAL)
+            self.playing = False
+            
+    async def reverse_animation(self):
+        if self.field_option == "Solid": return
+        if not self.playing:
+            self.playing = True
+            for step in reversed(self.animationScene.TimeKeeper.TimestepValues):
+                print(f"On step: {step}")
+                self.animationScene.AnimationTime = step
+                self.ctrl.view_update()
+                await asyncio.sleep(self.INTERVAL)
+                pass
+            self.playing = False
     
-    def animate_backward(self):
-        print("Animate backward...")
-        self.animationScene.GoToNext()
-        print()
+    def to_previous_frame(self):
+        if self.field_option == "Solid": return
+        if self.playing:
+            return
+        print("To previous frame")
+        print(f"(Before) t={self.animationScene.AnimationTime}")
+        steps = self.animationScene.TimeKeeper.TimestepValues
+        max_time, min_time = max(steps), min(steps)
+        current_time = self.animationScene.AnimationTime
+        new_time = current_time - min_time
+        
+        if new_time >= min_time:
+            self.animationScene.AnimationTime = new_time
+            self.ctrl.view_update()
+        print(f"(After) t={self.animationScene.AnimationTime}")
         self.ctrl.view_update()
+        pass
+    
+    def to_last_frame(self):
+        if self.field_option == "Solid": return
+        if self.playing:
+            return
+        print("To last frame")
+        print(f"(Before) t={self.animationScene.AnimationTime}")
+        steps = self.animationScene.TimeKeeper.TimestepValues
+        max_time, min_time = max(steps), min(steps)
+            
+        self.animationScene.AnimationTime = max_time
+        self.ctrl.view_update()
+        print(f"(After) t={self.animationScene.AnimationTime}")
+        pass
+    
+    def to_first_frame(self):
+        if self.field_option == "Solid": return
+        if self.playing:
+            return
+        print("To last frame")
+        print(f"(Before) t={self.animationScene.AnimationTime}")
+        steps = self.animationScene.TimeKeeper.TimestepValues
+        max_time, min_time = max(steps), min(steps)
+            
+        self.animationScene.AnimationTime = min_time
+        self.ctrl.view_update()
+        print(f"(After) t={self.animationScene.AnimationTime}")
+        pass
 
     def load_data(self, **_kwargs):
         # CLI
@@ -79,16 +146,15 @@ class VTUFileReaderApp(TrameApp):
         self.reader  = simple.XMLUnstructuredGridReader(FileName=out)
         print(self.reader.PointArrayStatus)
         self.fields = self.reader.PointArrayStatus
-        print("Associated fields: ", self.fields)
+        # print("Associated fields: ", self.fields)
         
         self.state.field_option = "Solid"
         self.state.field_options = ("Solid", *self.fields)
         self.animationScene = simple.GetAnimationScene()
         self.animationScene.UpdateAnimationUsingDataTimeSteps()
         
-        print("Animation time (before): ", self.animationScene.AnimationTime)
-        # self.animationScene.AnimationTime = 0.05
-        print("Animation time (after): ", self.animationScene.AnimationTime)
+        print(f"The current time is {self.animationScene.AnimationTime}")
+        print("Time Step Values: ", self.animationScene.TimeKeeper.TimestepValues)
         
         self.representation= simple.Show(self.reader)
         simple.ColorBy(self.representation, ("POINTS", "Solid"))
@@ -102,16 +168,28 @@ class VTUFileReaderApp(TrameApp):
             self.ui.title.set_text("ParaView State Viewer")
             with self.ui.toolbar:
                 v3.VBtn(
+                    icon="mdi-step-backward-2",
+                    click=self.to_first_frame # <-- Use that reset_camera (init order does not matter)
+                )
+                v3.VBtn(
                     icon="mdi-step-backward",
-                    click=self.animate_backward # <-- Use that reset_camera (init order does not matter)
+                    click=self.to_previous_frame # <-- Use that reset_camera (init order does not matter)
+                )
+                v3.VBtn(
+                    icon="mdi-arrow-left",
+                    click=self.reverse_animation # <-- Use that reset_camera (init order does not matter)
                 )
                 v3.VBtn(
                     icon="mdi-play",
-                    click=self.animate_play # <-- Use that reset_camera (init order does not matter)
+                    click=self.play_animation # <-- Use that reset_camera (init order does not matter)
                 )
                 v3.VBtn(
                     icon="mdi-step-forward",
-                    click=self.animate_forward # <-- Use that reset_camera (init order does not matter)
+                    click=self.to_next_frame # <-- Use that reset_camera (init order does not matter)
+                )
+                v3.VBtn(
+                    icon="mdi-step-forward-2",
+                    click=self.to_last_frame # <-- Use that reset_camera (init order does not matter)
                 )
                 v3.VSelect(
                     label="Choose an Option",

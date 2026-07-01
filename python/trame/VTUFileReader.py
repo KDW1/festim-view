@@ -50,6 +50,13 @@ class VTUFileReaderApp(TrameApp):
         self.animationScene.GoToNext()
         self.ctrl.view_update()
         
+    async def animate_play(self):
+        for step in self.animationScene.TimeKeeper.TimestepValues:
+            print("Current Step: ", step)
+            self.animationScene.AnimationTime = step
+            self.ctrl.view_update()
+            FRAME_INTERVAL = 0.05
+            await asyncio.sleep(FRAME_INTERVAL)
     
     def animate_backward(self):
         print("Animate backward...")
@@ -100,7 +107,7 @@ class VTUFileReaderApp(TrameApp):
                 )
                 v3.VBtn(
                     icon="mdi-play",
-                    click=self.play # <-- Use that reset_camera (init order does not matter)
+                    click=self.animate_play # <-- Use that reset_camera (init order does not matter)
                 )
                 v3.VBtn(
                     icon="mdi-step-forward",

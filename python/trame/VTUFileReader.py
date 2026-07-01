@@ -54,13 +54,22 @@ class VTUFileReaderApp(TrameApp):
     def animate_backward(self):
         print("Animate backward...")
         self.animationScene.GoToNext()
+        print()
         self.ctrl.view_update()
 
     def load_data(self, **_kwargs):
         # CLI
         args, _ = self.server.cli.parse_known_args()
         filepath = os.path.join(os.getcwd(), str(args.data))
-        self.reader  = simple.XMLUnstructuredGridReader(FileName=filepath)
+        f = []
+        for (dirpath, dirnames, filename) in os.walk(filepath):
+            f.extend(filename)
+        out = []
+        for filename in f:
+            # print(filename)
+            out.append(filepath+f"/{filename}")
+        # print("Filepaths: ", out)
+        self.reader  = simple.XMLUnstructuredGridReader(FileName=out)
         print(self.reader.PointArrayStatus)
         self.fields = self.reader.PointArrayStatus
         print("Associated fields: ", self.fields)
@@ -88,6 +97,10 @@ class VTUFileReaderApp(TrameApp):
                 v3.VBtn(
                     icon="mdi-step-backward",
                     click=self.animate_backward # <-- Use that reset_camera (init order does not matter)
+                )
+                v3.VBtn(
+                    icon="mdi-play",
+                    click=self.play # <-- Use that reset_camera (init order does not matter)
                 )
                 v3.VBtn(
                     icon="mdi-step-forward",

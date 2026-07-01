@@ -30,10 +30,6 @@ def add_relevant_point_data(dataset, values):
             float_array = vtk.vtkFloatArray()
             float_array.SetName(field)
             for value in values[field]:
-                # print("Adding value: ", value)
-                if values["step"][0] == 0.05:
-                    float_array.InsertNextValue(0)
-                    continue
                 float_array.InsertNextValue(value[0])
                 
             # print(float_array)

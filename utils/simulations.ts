@@ -39,6 +39,7 @@ export type FESTIMSim = {
   imageUrl?: string;
   imageCaption?: string;
   cookieCutterSettings?: string;
+  tutorialLink?: string;
 }
 
 // Dictionary of FESTIM classes

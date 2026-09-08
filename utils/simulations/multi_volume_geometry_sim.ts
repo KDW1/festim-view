@@ -45,7 +45,10 @@ $interfaces--{*interface.variable*}=F.Interface(id={*interface.id*}, subdomains=
 
 export const multiVolumeGeometrySimulation : FESTIMSim = {
     title: "Meshing a Multi-Volume Geometry",
+    imageUrl: "/MeshingMultiVolume.png",
+    imageCaption: "Visualization of a multi-volume mesh of a tube whose .msh file was generated with a process involving CADQuery",
     description: `This section discusses how to mesh multiple volumes in GMSH, which users may need to do for a multi-material hydrogen transport problem in FESTIM. We use CadQuery, a powerful Python-based library that can build 3D parametric models. See its documentation to learn more.`,
+    tutorialLink: "https://festim-workshop.readthedocs.io/en/latest/content/meshes/mesh_gmsh.html#meshing-a-multi-volume-geometry",
     steps: [
       {
         title: "GMSH Calculations",

@@ -42,7 +42,7 @@ export const PRESET_SIMULATIONS = [
 ]
 
 export default function Home() {
-  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim>(importCadSimulation)
+  const [currentSimulation, setCurrentSimulation] = useState<FESTIMSim>(PRESET_SIMULATIONS[0])
 
   // Note this method of storing bindings locally will change in the future
   // Since I'm pretty sure this isn't reliable

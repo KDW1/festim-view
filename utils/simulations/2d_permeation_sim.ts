@@ -764,6 +764,7 @@ if F.__version__ != "2.0b2.post2":
     // testingPageVariablesStep,
     runStep
   ],
+  tutorialLink: "https://festim-workshop.readthedocs.io/en/latest/content/meshes/mesh_fenics.html",
   imageUrl: "/2D Permeation.png",
   cookieCutterSettings: `[
     {

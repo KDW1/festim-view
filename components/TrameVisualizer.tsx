@@ -8,6 +8,7 @@ import { faLastfmSquare } from "@fortawesome/free-brands-svg-icons";
 import { faBackward, faBackwardFast, faBackwardStep, faCookieBite, faCross, faForwardFast, faForwardStep, faPlay, faScrewdriverWrench, faWrench, faX, faXmark } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import SimulationsMenu from "./SimulationsMenu";
+import Link from "next/link";
 
 type VisualizerProps = {
   identifyExportPath: Function;
@@ -75,6 +76,8 @@ export default function TrameVisualizer({
           </button>
         </div>
       </div>
+        {simulation?.tutorialLink && (<p className="text-primary line-clamp-1 text-sm">
+          Original Tutorial is at <Link href={simulation.tutorialLink} className="text-sm text-primarybg hover:text-blue-400 ease-in-out duration-300">{simulation.tutorialLink}</Link></p>)}
       <div className="flex overflow-x-auto gap-2 text-primary items-center rounded-md">
         {
           tabs.map((tab) =>

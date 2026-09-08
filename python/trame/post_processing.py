@@ -453,7 +453,7 @@ class PostProcessing(TrameApp):
                 with self.ui.toolbar.clear() as toolbar:
                     toolbar.density = "comfortable"
                     v3.VSelect(
-                        label="Color By",
+                        label="Field Option",
                         v_model=("pv_color_by", "Solid"),
                         items=("pv_color_options", []),
                         density="compact",
@@ -474,12 +474,6 @@ class PostProcessing(TrameApp):
                     )
 
                     with html.Div(classes="d-flex ga-2 mx-2"):
-                        v3.VBtn(
-                            icon="mdi-arrow-expand-horizontal",
-                            click=self.reset_color_range,
-                            classes="rounded",
-                            density="compact",
-                        )
                         v3.VBtn(
                             icon="mdi-axis-x-arrow",
                             click=(self.view_action, "['ResetActiveCameraToPositiveX']"),

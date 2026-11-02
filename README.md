@@ -35,4 +35,4 @@ Related branches are `prod` which I made when working on this newer updates
 - **Basic Binding System**, this video demonstrates how we can generate custom scripts that correspond to our inputs and it shows the foundation of FESTIM View's functionality
 - **Data Structures for Simulation Configuration**, I also dive into the mechanics that make defining a FESTIM simulation fairly simple and the ways which those values are assembled into the relevant output, that code snippet
 
-[![Recap II](http://34.135.27.164/Example%20Simulation.png)](https://drive.google.com/file/d/1J7aZqlMWgjhLN-zCtLpV5IM2heTRUeWu/view?usp=drive_link)
+[![Recap I](http://34.135.27.164/Example%20Simulation.png)](https://drive.google.com/file/d/1J7aZqlMWgjhLN-zCtLpV5IM2heTRUeWu/view?usp=drive_link)
